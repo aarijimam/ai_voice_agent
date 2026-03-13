@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "nodejs-whisper": "^0.2.9",
+    "ollama": "^0.6.3",
     "whisper.cpp": "^1.0.3"
   }
 }

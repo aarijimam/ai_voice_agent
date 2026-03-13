@@ -1,7 +1,7 @@
-import { startTimer } from "./utils/logger.js";
 import path from 'path'
 import { fileURLToPath } from 'url';
 import { transcribeAudio } from "./pipeline/stt.js";
+import { textToSpeech } from "./pipeline/tts.js";
 
 
 // This is a sample code to test the functionality of the STT pipeline using nodejs-whisper library.
@@ -15,4 +15,8 @@ const filePath = path.resolve(__dirname, '../audio/test_audio.wav')
 let transcibedText: string = await transcribeAudio(filePath);
 
 console.log("Transcribed Text:", transcibedText);
+
+// Convert the transcribed text back to speech and save it as an audio file
+const outputFilePath = path.resolve(__dirname, '../audio/output_audio.aiff');
+await textToSpeech(transcibedText, outputFilePath);
 
