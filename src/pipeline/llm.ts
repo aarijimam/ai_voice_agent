@@ -5,7 +5,7 @@ import type {Message} from '../intents/types.js';
 export async function queryLLM(messages: Message[]): Promise<string> {
     const timer = startTimer("LLM Timer");
     const response = await ollama.chat({
-        model: 'llama3.2:1b',
+        model: 'llama3.2:3b',
         messages: messages
     })
     timer.end();
