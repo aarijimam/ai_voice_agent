@@ -2,10 +2,12 @@ export type IntentType =
     | "policy_enquiry"
     | "report_claim"
     | "schedule_appointment"
-    | "unknown";
+    | "general_conversation"
+    | "unknown"
+    ;
 
-export interface Intent {
-    type: IntentType;
+export interface IntentResult {
+    intent: IntentType;
     confidence: number;
 }
 

@@ -2,7 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url';
 import { transcribeAudio } from "./pipeline/stt.js";
 import { detectIntent } from "./intents/detector.js";
-
+import { handleIntent } from './intents/handler.js';
 
 let file: string | undefined = process.argv[2];
 if (!file) {
@@ -26,3 +26,5 @@ let reponse =  await detectIntent(transcibedText);
 
 console.log("Detected Intent:", reponse.intent);
 console.log("Confidence Score:", reponse.confidence);
+
+await handleIntent(reponse);
