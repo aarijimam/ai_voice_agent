@@ -1,7 +1,7 @@
-import type {Intent} from "./types.js";
+import type {IntentResult} from "./types.js";
 
-export async function handleIntent(intent: Intent) {
-    switch (intent.type) {
+export async function handleIntent(intent: IntentResult) {
+    switch (intent.intent) {
         case "policy_enquiry":
             handlePolicyEnquiry(intent.confidence);
             break;
