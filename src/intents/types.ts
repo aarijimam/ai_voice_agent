@@ -9,6 +9,7 @@ export type IntentType =
 export interface IntentResult {
     intent: IntentType;
     confidence: number;
+    llm_response: string;
 }
 
 export interface Message {

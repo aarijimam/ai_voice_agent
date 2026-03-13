@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { transcribeAudio } from "./pipeline/stt.js";
 import { detectIntent } from "./intents/detector.js";
 import { handleIntent } from './intents/handler.js';
+import { textToSpeech } from './pipeline/tts.js';
 
 let file: string | undefined = process.argv[2];
 if (!file) {
@@ -27,4 +28,6 @@ let detectedIntent =  await detectIntent(transcibedText);
 console.log("Detected Intent:", detectedIntent.intent);
 console.log("Confidence Score:", detectedIntent.confidence);
 
-await handleIntent(detectedIntent, transcibedText);
+
+await textToSpeech(detectedIntent.llm_response, `./output/${path.parse(file).name}_response.wav`, true);
+// await handleIntent(detectedIntent, transcibedText);
