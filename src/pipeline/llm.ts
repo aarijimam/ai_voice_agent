@@ -1,11 +1,12 @@
 import ollama from 'ollama'
 import { startTimer } from '../utils/logger.js';
 import type {Message} from '../intents/types.js';
+import { config } from '../utils/config.js';
 
 export async function queryLLM(messages: Message[]): Promise<string> {
     const timer = startTimer("LLM Timer");
     const response = await ollama.chat({
-        model: 'llama3.2:3b',
+        model: config.ollama.model,
         messages: messages
     })
     timer.end();
