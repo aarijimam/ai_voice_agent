@@ -50,5 +50,3 @@ public/
 .svelte-kit/
 
 ./whisper.cpp/  # Ignore the whisper.cpp directory if it exists
-
-./whisper.cpp
