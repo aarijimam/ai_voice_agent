@@ -2,6 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url';
 import { transcribeAudio } from "./pipeline/stt.js";
 import { textToSpeech } from "./pipeline/tts.js";
+import { queryLLM } from "./pipeline/llm.js";
 
 
 // This is a sample code to test the functionality of the STT pipeline using nodejs-whisper library.
@@ -16,7 +17,11 @@ let transcibedText: string = await transcribeAudio(filePath);
 
 console.log("Transcribed Text:", transcibedText);
 
+let response = await queryLLM(transcibedText);
+
+console.log("LLM Response:", response);
 // Convert the transcribed text back to speech and save it as an audio file
 const outputFilePath = path.resolve(__dirname, '../audio/output_audio.aiff');
-await textToSpeech(transcibedText, outputFilePath);
+await textToSpeech(response, outputFilePath, true);
+
 
