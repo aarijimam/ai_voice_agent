@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type {Message, Session } from "../intents/types.js";
 
+
+// This will manage the session for a single user. For multiple users, we can extend this to manage multiple sessions in a map or database.
 export class SessionManager {
-    private session: Session;
+    private session: Session; // For more users, we can make this a map of sessionId to Session
 
     constructor() {
         this.session = this.createSession();
@@ -26,4 +28,8 @@ export class SessionManager {
         const message: Message = { role, content };
         this.session.history.push(message);
     }
+
+    endSession() {
+        this.session = this.createSession();
+    }   
 }
