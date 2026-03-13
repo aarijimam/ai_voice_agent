@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/aarijimam/ai_voice_agent/issues"
   },
-  "homepage": "https://github.com/aarijimam/ai_voice_agent#readme"
+  "homepage": "https://github.com/aarijimam/ai_voice_agent#readme",
+  "devDependencies": {
+    "@types/node": "^25.5.0"
+  }
 }
