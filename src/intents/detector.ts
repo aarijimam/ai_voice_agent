@@ -13,9 +13,9 @@ export async function detectIntent(message: string): Promise<IntentResult> {
     try {
         console.log("LLM Response for intent detection:", response);
         const parsed = JSON.parse(response);
-        return { intent: parsed.intent, confidence: parsed.confidence, llm_response: parsed.llm_response };
+        return { intent: parsed.intent, confidence: parsed.confidence, customerName: parsed.customerName !== 'null' ? parsed.customerName : null, llm_response: parsed.llm_response };
     } catch (error) {
         console.error("Failed to parse LLM response:", error);
-        return { intent: "unknown", confidence: 0.0 , llm_response: "Sorry, I couldn't understand that, can you please rephrase?"};
+        return { intent: "unknown", confidence: 0.0 , customerName: null, llm_response: "Sorry, I couldn't understand that, can you please rephrase?"};
     }
 }
