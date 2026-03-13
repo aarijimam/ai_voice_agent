@@ -1,51 +1,57 @@
 import type {IntentResult} from "./types.js";
+import { handleGeneralChat } from "../conversation/chat.js";
 
-export async function handleIntent(intent: IntentResult) {
+export async function handleIntent(intent: IntentResult, userMessage: string) {
     switch (intent.intent) {
         case "policy_enquiry":
-            handlePolicyEnquiry(intent.confidence);
+            handlePolicyEnquiry(intent.confidence, userMessage);
             break;
 
         case "report_claim":
-            handleReportClaim(intent.confidence);
+            handleReportClaim(intent.confidence, userMessage);
             break;
             
         case "schedule_appointment":
-            handleScheduleAppointment(intent.confidence);
+            handleScheduleAppointment(intent.confidence, userMessage);
             break;
 
         case "general_conversation":
-            handleGeneralConversation(intent.confidence);
+            //handleGeneralConversation(intent.confidence, userMessage);
             break;
 
         default:
-            handleUnknownIntent(intent.confidence);
+            handleUnknownIntent(intent.confidence, userMessage);
             break;
     }
 }
 
 
-function handlePolicyEnquiry(confidence: number) : string{
+function handlePolicyEnquiry(confidence: number, userMessage: string) : string{
     console.log("Handling policy enquiry with confidence:", confidence);
     return "Policy enquiry handled";
 }
 
-function handleReportClaim(confidence: number) : string {
+function handleReportClaim(confidence: number, userMessage: string) : string {
     console.log("Handling claim report with confidence:", confidence);
     return "Claim report handled";
 }
 
-function handleScheduleAppointment(confidence: number) : string {
+function handleScheduleAppointment(confidence: number, userMessage: string) : string {
     console.log("Handling appointment scheduling with confidence:", confidence);
     return "Appointment scheduled";
 }
 
-function handleUnknownIntent(confidence: number) : string {
+function handleUnknownIntent(confidence: number, userMessage: string) : string {
     console.log("Handling unknown intent with confidence:", confidence);
     return "Unknown intent handled";
 }
 
-function handleGeneralConversation(confidence: number) : string {
+function handleGeneralConversation(confidence: number, userMessage: string) : string {
     console.log("Handling general conversation with confidence:", confidence);
+    handleGeneralChat(userMessage).then(response => {
+        console.log("LLM Response for general conversation:", response);
+    }).catch(error => {
+        console.error("Error handling general conversation:", error);
+    });
     return "General conversation handled";
 }

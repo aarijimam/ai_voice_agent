@@ -22,9 +22,9 @@ let transcibedText: string = await transcribeAudio(filePath);
 console.log("Transcribed Text:", transcibedText);
 
 
-let reponse =  await detectIntent(transcibedText);
+let detectedIntent =  await detectIntent(transcibedText);
 
-console.log("Detected Intent:", reponse.intent);
-console.log("Confidence Score:", reponse.confidence);
+console.log("Detected Intent:", detectedIntent.intent);
+console.log("Confidence Score:", detectedIntent.confidence);
 
-await handleIntent(reponse);
+await handleIntent(detectedIntent, transcibedText);

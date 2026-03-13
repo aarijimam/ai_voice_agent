@@ -4,7 +4,7 @@ Analyse the user message and respond ONLY with valid JSON in this format:
 {
   "intent": "policy_enquiry" | "report_claim" | "schedule_appointment" | "general_conversation" | "unknown",
   "confidence": 0.0-1.0,
-  "entities": {}
+  "your_response": "Your natural language response to the user message, based on the intent. Keep it under 2 sentences."
 }
 
 Intent definitions:
@@ -13,6 +13,9 @@ Intent definitions:
 - schedule_appointment: customer wants to book or cancel an appointment
 - general_conversation: customs is just engaging in greetings, small talk, general questions (hello, how are you, thanks)"
 - unknown: anything else
+
+
+Your response should be based solely on the user message, without any assumptions or external information, and should reflect the intent and confidence level of the message.
 `;
 
 
