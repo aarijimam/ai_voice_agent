@@ -20,5 +20,9 @@
   "homepage": "https://github.com/aarijimam/ai_voice_agent#readme",
   "devDependencies": {
     "@types/node": "^25.5.0"
+  },
+  "dependencies": {
+    "nodejs-whisper": "^0.2.9",
+    "whisper.cpp": "^1.0.3"
   }
 }

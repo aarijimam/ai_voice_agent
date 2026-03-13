@@ -48,3 +48,7 @@ public/
 
 # Optional SvelteKit build output
 .svelte-kit/
+
+./whisper.cpp/  # Ignore the whisper.cpp directory if it exists
+
+./whisper.cpp
