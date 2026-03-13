@@ -15,7 +15,7 @@ export async function handleIntent(intent: IntentResult, userMessage: string) {
             break;
 
         case "general_conversation":
-            //handleGeneralConversation(intent.confidence, userMessage);
+            handleGeneralConversation(intent.confidence, userMessage);
             break;
 
         default:
