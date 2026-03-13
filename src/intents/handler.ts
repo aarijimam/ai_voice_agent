@@ -1,5 +1,4 @@
 import type {IntentResult} from "./types.js";
-import { handleGeneralChat } from "../conversation/chat.js";
 
 export async function handleIntent(intent: IntentResult, userMessage: string) {
     switch (intent.intent) {
@@ -48,10 +47,5 @@ function handleUnknownIntent(confidence: number, userMessage: string) : string {
 
 function handleGeneralConversation(confidence: number, userMessage: string) : string {
     console.log("Handling general conversation with confidence:", confidence);
-    handleGeneralChat(userMessage).then(response => {
-        console.log("LLM Response for general conversation:", response);
-    }).catch(error => {
-        console.error("Error handling general conversation:", error);
-    });
     return "General conversation handled";
 }
