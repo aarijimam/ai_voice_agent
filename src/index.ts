@@ -1,27 +1,28 @@
 import path from 'path'
 import { fileURLToPath } from 'url';
 import { transcribeAudio } from "./pipeline/stt.js";
-import { textToSpeech } from "./pipeline/tts.js";
-import { queryLLM } from "./pipeline/llm.js";
+import { detectIntent } from "./intents/detector.js";
 
 
-// This is a sample code to test the functionality of the STT pipeline using nodejs-whisper library.
+let file: string | undefined = process.argv[2];
+if (!file) {
+    console.error("Please provide the audio file name as a command line argument.");
+    process.exit(1);
+}
+
 
 // Get the current directory of the file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const filePath = path.resolve(__dirname, '../audio/test_audio.wav')
+const filePath = path.resolve(__dirname, `../audio/${file}`)
 
 // Transcribe the audio file and log the transcribed text and the time taken for the STT process.
 let transcibedText: string = await transcribeAudio(filePath);
 
 console.log("Transcribed Text:", transcibedText);
 
-let response = await queryLLM(transcibedText);
 
-console.log("LLM Response:", response);
-// Convert the transcribed text back to speech and save it as an audio file
-const outputFilePath = path.resolve(__dirname, '../audio/output_audio.aiff');
-await textToSpeech(response, outputFilePath, true);
+let reponse =  await detectIntent(transcibedText);
 
-
+console.log("Detected Intent:", reponse.intent);
+console.log("Confidence Score:", reponse.confidence);
