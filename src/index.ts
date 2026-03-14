@@ -37,6 +37,7 @@ import { fileURLToPath } from "url";
 import { Agent } from "./agent.js";
 import readline from "readline";
 import path from 'path'
+import { config } from "./utils/config.js";
 
 
 
@@ -52,7 +53,8 @@ const rl = readline.createInterface({
 });
 
 console.log("Insurance Voice Agent");
-console.log("Commands: [r] record <seconds> | [f] <filepath> | [q] quit\n");
+console.log(`Current language: ${config.whisper.language}`);
+console.log("Commands: [r] record <seconds> | [f] <filepath> | [l] language <en|de> | [q] quit\n");
 
 function prompt() {
   rl.question("> ", async (input) => {
@@ -73,6 +75,18 @@ function prompt() {
           console.error("Error during audio file processing, make sure the file path is correct and the file exists.", error);
         }
         break;
+      case "l":
+      case "language": {
+        const lang = args[0];
+        if (lang !== "en" && lang !== "de") {
+          console.log("Usage: l <en|de>");
+          break;
+        }
+
+        config.setLanguage(lang);
+        console.log(`Language switched to: ${config.whisper.language} (voice: ${config.tts.voice})`);
+        break;
+      }
       case "q":
         agent.endSession();
         rl.close();
