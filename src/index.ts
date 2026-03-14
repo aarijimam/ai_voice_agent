@@ -1,43 +1,9 @@
-// import path from 'path'
-// import { fileURLToPath } from 'url';
-// import { transcribeAudio } from "./pipeline/stt.js";
-// import { detectIntent } from "./intents/detector.js";
-// import { handleIntent } from './intents/handler.js';
-// import { textToSpeech } from './pipeline/tts.js';
-
-// let file: string | undefined = process.argv[2];
-// if (!file) {
-//     console.error("Please provide the audio file name as a command line argument.");
-//     process.exit(1);
-// }
-
-
-// // Get the current directory of the file
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-// const filePath = path.resolve(__dirname, `../audio/${file}`)
-
-// // Transcribe the audio file and log the transcribed text and the time taken for the STT process.
-// let transcibedText: string = await transcribeAudio(filePath);
-
-// console.log("Transcribed Text:", transcibedText);
-
-
-// let detectedIntent =  await detectIntent(transcibedText);
-
-// console.log("Detected Intent:", detectedIntent.intent);
-// console.log("Confidence Score:", detectedIntent.confidence);
-
-
-// await textToSpeech(detectedIntent.llm_response, `./output/${path.parse(file).name}_response.wav`, true);
-// // await handleIntent(detectedIntent, transcibedText);
-
-
 import { fileURLToPath } from "url";
 import { Agent } from "./agent.js";
 import readline from "readline";
 import path from 'path'
 import { config } from "./utils/config.js";
+import { randomUUID } from "node:crypto";
 
 
 
@@ -45,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
-const agent = new Agent();
+let agent: Agent;
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -55,6 +21,42 @@ const rl = readline.createInterface({
 console.log("Insurance Voice Agent");
 console.log(`Current language: ${config.whisper.language}`);
 console.log("Commands: [r] record <seconds> | [f] <filepath> | [l] language <en|de> | [q] quit\n");
+
+function questionAsync(question: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => resolve(answer));
+  });
+}
+
+function normalizePhoneNumber(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const compact = trimmed.replace(/[\s\-().]/g, "");
+  const e164Candidate = compact.startsWith("00") ? `+${compact.slice(2)}` : compact;
+
+  if (!/^\+?[1-9]\d{7,14}$/.test(e164Candidate)) {
+    return null;
+  }
+
+  return e164Candidate.startsWith("+") ? e164Candidate : `+${e164Candidate}`;
+}
+
+async function initializeAgentWithUserKey(): Promise<void> {
+  const phoneInput = await questionAsync("Enter phone number for testing (optional): ");
+  const normalizedPhone = normalizePhoneNumber(phoneInput);
+  const userKey = normalizedPhone ? `phone:${normalizedPhone}` : `anonymous:${randomUUID()}`;
+
+  if (normalizedPhone) {
+    console.log(`Using user key: ${userKey}`);
+  } else {
+    console.log(`No valid phone provided. Using temporary key: ${userKey}`);
+  }
+
+  agent = new Agent(userKey);
+}
 
 function prompt() {
   rl.question("> ", async (input) => {
@@ -88,7 +90,7 @@ function prompt() {
         break;
       }
       case "q":
-        agent.endSession();
+        await agent.endSession();
         rl.close();
         return;
       default:
@@ -99,4 +101,9 @@ function prompt() {
   });
 }
 
-prompt();
+initializeAgentWithUserKey()
+  .then(() => prompt())
+  .catch((error) => {
+    console.error("Failed to initialize user identity for session.", error);
+    rl.close();
+  });
