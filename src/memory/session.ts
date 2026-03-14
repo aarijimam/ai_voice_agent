@@ -1,18 +1,28 @@
 import { randomUUID } from "node:crypto";
 import type {Message, Session } from "../intents/types.js";
+import { MemoryStore } from "./memory.js";
+import { summarizeSessionHistory, SummaryStore } from "./summary.js";
 
 
 // This will manage the session for a single user. For multiple users, we can extend this to manage multiple sessions in a map or database.
 export class SessionManager {
     private session: Session; // For more users, we can make this a map of sessionId to Session
+    private readonly userKey: string;
+    private readonly memoryStore: MemoryStore;
+    private readonly summaryStore: SummaryStore;
 
-    constructor() {
-        this.session = this.createSession();
+    constructor(userKey: string) {
+        this.userKey = userKey;
+        this.memoryStore = new MemoryStore();
+        this.summaryStore = new SummaryStore();
+        this.session = this.createSession(this.summaryStore.getAllSummariesAsContext(this.userKey));
     }
 
-    createSession(): Session {
+    createSession(previousSessionSummary: string | null = this.summaryStore.getAllSummariesAsContext(this.userKey)): Session {
         const session: Session = {
             sessionId: randomUUID(),
+            userKey: this.userKey,
+            previousSessionSummary,
             customerName: null,
             history: [],
             intent: "unknown",
@@ -49,7 +59,11 @@ export class SessionManager {
         return this.session.history;
     }
 
-    endSession() {
+    async endSession(): Promise<void> {
+        console.log(`[SESSION] Ending session for user: ${this.userKey}`);
+        const summary = await summarizeSessionHistory(this.session.history);
+        this.memoryStore.appendSession(this.session);
+        this.summaryStore.appendSummary(this.session, summary);
         this.session = this.createSession();
     }   
 }
