@@ -5,7 +5,8 @@ export const config = {
     provider: "gemini" as LlmProvider,
   },
   whisper: {
-    model: "small.en",
+    model: "medium",
+    language: "de",
   },
   ollama: {
     model: "mistral:7b", 
