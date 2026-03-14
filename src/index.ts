@@ -60,10 +60,18 @@ function prompt() {
 
     switch (cmd) {
       case "r":
-        await agent.processMicInput(args[0] ? parseInt(args[0], 10) : 5);
+        try{
+          await agent.processMicInput(args[0] ? parseInt(args[0], 10) : 5);
+        }catch(error){
+          console.error("Error during microphone input processing, make sure you are using correct command format (r <seconds>) and that your microphone is working properly.");
+        }
         break;
       case "f":
-        await agent.processAudioFile(args[0] ?  path.resolve(__dirname, `../audio/${args[0]}`) : "./audio/default.wav");
+        try{
+          await agent.processAudioFile(args[0] ?  path.resolve(__dirname, `../audio/${args[0]}`) : "./audio/default.wav");
+        }catch(error){
+          console.error("Error during audio file processing, make sure the file path is correct and the file exists.");
+        }
         break;
       case "q":
         agent.endSession();
