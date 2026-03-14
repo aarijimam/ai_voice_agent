@@ -25,16 +25,24 @@ async processMicInput(durationSeconds = 5): Promise<void> {
       throw new Error(
         `Critical Failure: Audio file not found at ${audioFilePath}`,
       );
-    }else{
-        console.log(`Audio file found at ${audioFilePath}, proceeding with processing.`);
-        transcribeAudio(audioFilePath).then(transcript => {
-            console.log("Transcribed Text:", transcript);
-            this.processTextMessage(transcript);
-        }).catch(error => {
-            console.error("Error during audio processing:", error);
-        });
     }
+
+    try{
+    console.log(`Audio file found at ${audioFilePath}, proceeding with processing.`);
+    const transcript = await transcribeAudio(audioFilePath);
+    console.log("[STT] Transcribed Text:", transcript);
+    if (!transcript || transcript.trim().length === 0) {
+        console.log("[STT] No valid transcript generated.");
+        await textToSpeech("Sorry, I couldn't understand the audio. Can you please repeat?", `./output/error_response_${Date.now()}.wav`, true);
+    } else {
+        await this.processTextMessage(transcript);
     }
+} catch (error) {
+    console.error("Error during audio processing:", error);
+    await textToSpeech("Sorry, I couldn't understand the audio. Can you please repeat?", `./output/error_response_${Date.now()}.wav`, true);
+}
+    
+}
 
   async processTextMessage(text: string): Promise<void> {
 
