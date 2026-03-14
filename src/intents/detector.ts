@@ -4,10 +4,10 @@ import type { IntentResult } from "./types.js";
 import {AGENT_PROMPT} from "../conversation/prompts.js";
 
 
-export async function detectIntent(message: string): Promise<IntentResult> {
+export async function detectIntent(message: Message[]): Promise<IntentResult> {
     const messages:Message[] = [
         { role: "system", content: AGENT_PROMPT },
-        { role: "user", content: message }
+        ...message
     ];
     const response = await queryLLM(messages);
     try {
