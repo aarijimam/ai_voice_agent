@@ -51,4 +51,4 @@ public/
 
 ./whisper.cpp/  # Ignore the whisper.cpp directory if it exists
 
-./audio/temp/  # Ignore temporary audio files
+audio/temp/  # Ignore temporary audio files
