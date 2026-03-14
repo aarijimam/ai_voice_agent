@@ -56,3 +56,5 @@ whisper.cpp/
 audio/temp/
 
 models/
+
+data/memory/
