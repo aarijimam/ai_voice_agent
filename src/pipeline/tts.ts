@@ -11,6 +11,6 @@ export async function textToSpeech(text: string, outputFilePath: string, speak: 
     }else{
         execSync(`say -v ${config.tts.voice} "${safe}" -o ${outputFilePath}`);
     }
-    timer.end();
-    console.log(`TTS process has been running for ${timer.end()} milliseconds.`);
+    const duration = timer.end();
+    console.log(`TTS process has been running for ${duration} milliseconds.`);
 }

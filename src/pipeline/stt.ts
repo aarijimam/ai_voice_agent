@@ -24,7 +24,7 @@ export async function transcribeAudio(filePath: string): Promise<string> {
     const transcriptVariable = fs.readFileSync(outputFilePath, 'utf8').trim();
     fs.unlinkSync(outputFilePath);
 
-    timer.end();
-    console.log(`STT process has been running for ${timer.end()} milliseconds.`);
+    const duration = timer.end();
+    console.log(`STT process has been running for ${duration} milliseconds.`);
     return transcriptVariable;
 }
