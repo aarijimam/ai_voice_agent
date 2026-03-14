@@ -4,11 +4,13 @@ import type { IntentResult } from "./types.js";
 import { buildAgentPrompt} from "../conversation/prompts.js";
 import { repairJSON } from '../utils/json_repair.js';
 import type { Session } from "./types.js";
+import { config } from "../utils/config.js";
 
 
 export async function detectIntent(message: Message[], session: Session): Promise<IntentResult> {
+    const useGermanPrompt = config.whisper.language === "de";
     const messages:Message[] = [
-        { role: "system", content: buildAgentPrompt(session) },
+        { role: "system", content: buildAgentPrompt(session, useGermanPrompt) },
         ...message
     ];
     console.log("Detecting intent with messages:", messages);
