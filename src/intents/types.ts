@@ -9,6 +9,8 @@ export type IntentType =
 
 export interface IntentResult {
     intent: IntentType;
+    intentSwitch: boolean;
+    abandonPrevious: boolean;
     confidence: number;
     customerName: string | null;
     llm_response: string;
@@ -24,5 +26,8 @@ export interface Session {
     sessionId: UUID;
     customerName?: string | null;
     history: Message[];
+    intent: IntentType;
     startedAt: Date;
+
+    getCurrentIntent(): IntentType;
 }
