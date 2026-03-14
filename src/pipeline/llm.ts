@@ -7,6 +7,7 @@ export async function queryLLM(messages: Message[]): Promise<string> {
     const timer = startTimer("LLM Timer");
     const response = await ollama.chat({
         model: config.ollama.model,
+        options: config.ollama.options,
         messages: messages
     })
     timer.end();
