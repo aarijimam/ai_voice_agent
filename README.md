@@ -69,4 +69,25 @@ npm run start
 ```
 
 
+## Usage 
+
+- Record Audio 
+
+```bash
+r <seconds to record> 
+```
+
+- Use a prerecorded audio file
+
+```bash
+f <filename>
+```
+
+- Quir
+
+```
+q
+```
+
+
 
