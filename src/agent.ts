@@ -3,12 +3,21 @@ import * as fs from "fs";
 import { detectIntent } from "./intents/detector.js";
 import { handleIntent } from "./intents/handler.js";
 import { textToSpeech } from "./pipeline/tts.js";
+import { transcribeAudio } from "./pipeline/stt.js";
+import { recordAudio } from "./pipeline/audio.js";
 
 export class Agent {
   private session: SessionManager;
 
   constructor() {
     this.session = new SessionManager();
+  }
+  
+
+async processMicInput(durationSeconds = 5): Promise<void> {
+    console.log(`[AGENT] Listening for ${durationSeconds}s...`);
+    const audioPath = await recordAudio(durationSeconds);
+    await this.processAudioFile(audioPath);
   }
 
   async processAudioFile(audioFilePath: string): Promise<void> {
@@ -18,29 +27,36 @@ export class Agent {
       );
     }else{
         console.log(`Audio file found at ${audioFilePath}, proceeding with processing.`);
-        this.processAudioFile(audioFilePath);
+        transcribeAudio(audioFilePath).then(transcript => {
+            console.log("Transcribed Text:", transcript);
+            this.processTextMessage(transcript);
+        }).catch(error => {
+            console.error("Error during audio processing:", error);
+        });
     }
-}
+    }
 
   async processTextMessage(text: string): Promise<void> {
+
         this. session.addMessage("user", text);
+
+        const messages = this.session.getMessages();
+        console.log("Current session messages:", messages);
         
-        const intentResult = await detectIntent(text);
+        const intentResult = await detectIntent(messages);
         
         if (intentResult.customerName) {
             this.session.updateCustomerName(intentResult.customerName);
         }
         
-        console.log("Detected intent:", intentResult.intent);
-        console.log("Confidence level:", intentResult.confidence);
-        console.log("LLM Response:", intentResult.llm_response);
-
-        handleIntent(intentResult, text); // This will do any processing needed based on the intent.
-
         const assistantMessage = intentResult.llm_response;
-        this.session.addMessage("assistant", assistantMessage);
+        handleIntent(intentResult, text); // This will do any processing needed based on the intent.
+        if (intentResult.intent !== "unknown") {
+            this.session.addMessage("assistant", assistantMessage);
+        }
 
-        await textToSpeech(assistantMessage, `./output/response_${Date.now()}.wav`, true);
+         await textToSpeech(assistantMessage, `./output/response_${Date.now()}.wav`, true);
+        
   }
 
 
