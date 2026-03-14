@@ -13,7 +13,7 @@ The architecture is modular and each stage logs timing in milliseconds.
 - Intent system with policy_enquiry report_claim schedule_appointment and unknown fallback is implemented.
 - Session memory keeps conversation context and customer name in the same session.
 - Session reset is implemented on quit.
-- Cross session memory is implemented with JSON files in data/memory and data/summaries.
+- Cross session memory is implemented with JSON files in **data/memory** and **data/summaries**.
 
 ## 2. System architecture
 
@@ -34,36 +34,36 @@ The application runs as a sequential pipeline.
 
 ### Components
 
-- src/index.ts
+- **src/index.ts**
         Starts CLI and handles commands r f l q, also asks the user's phone number on start to identify
-            - This can be a good identifies in actual cases as user will be calling from his phone
-- src/agent.ts
+        - This can be a good identifies in actual cases as user will be calling from his phone
+- **src/agent.ts**
         Main orchestrator for audio processing text processing intent handling and speech output.
-            - Takes the audio and does the necessary processing on it pipeline is called here STT->LLM->TTS
-- src/pipeline/audio.ts
+        - Takes the audio and does the necessary processing on it pipeline is called here STT->LLM->TTS
+- **src/pipeline/audio.ts**
         Handles microphone recording and audio conversion.
-            - Uses sox to record audio and contains ffmpeg call to convert if needed.
-- src/pipeline/stt.ts
+        - Uses sox to record audio and contains ffmpeg call to convert if needed.
+- **src/pipeline/stt.ts**
         Runs Whisper transcription through nodejs whisper.
-            - This is a wrapper for whispercpp which is cpp implementation for whisper and supports accelerated inference on Apple Silicon, later we can fork and modify this library too for our need, specially realtime transcription can speed up the process.
-- src/pipeline/llm.ts
+        - This is a wrapper for whispercpp which is cpp implementation for whisper and supports accelerated inference on Apple Silicon, later we can fork and modify this library too for our need, specially realtime transcription can speed up the process.
+- **src/pipeline/llm.ts**
         Runs LLM inference calls.
-            - Has too options based on the config file Ollama or Gemini, more options can also be added.
-            - I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
-            - LocalLLM tends to lose context faster gemini is good at this.
-            - For Gemini model
+        - Has too options based on the config file Ollama or Gemini, more options can also be added.
+        - I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
+        - LocalLLM tends to lose context faster gemini is good at this.
+        - For Gemini model
                 - I chose the "gemini-3.1-flash-lite-preview" because it is the latest flash lite model as we don't need that much context and designing for least latency a faster smaller model is better.
                 - I chose Gemini in particular because it offers a free api for developers for testing, in our case as we are not using media, or complex calculations the choice of models do not matter that much, I also tested with "gemini-3-flash-preview" and there was not much difference as we are also use limited tokens and sentence length.
-            - For Local LLM (Ollama)
+        - For Local LLM (Ollama)
                 - Choice first of all depended on the amount of RAM I had, being limited by 16 GB VRAM, I was limited to using the smaller parameter versions of the models.
                 - I tested will llama3.2:1b (1 billion params) but the output was too unreliable specially when it comes to JSON structure
                 - I test wth llama3.2:3b (3 billion params) the output was more reliable but the context window was too small and the model tended to lose context after a  4-5 messages from the user and often resulted in corrupted JSONs.
                 - Mistral:7b was able to provide reliable results as well as maintain a larger amount of context, it also seemed to reply with the correct structure most of the times, this was also the biggest model in param sizes, so the quality of output was naturally better
-- src/pipeline/tts.ts
+- **src/pipeline/tts.ts**
         Uses macOS say for voice response.
         - As we sticking to only Apple Silicon macOS say was the fastest and easiest ooption to implement, it supports voices in both English and German and the latency is very minimum and can run on any mac, however the audio quality is not ideal.
         - As I wanted to stick to local models, ElevenLabs or OpenAI TTS were not an option for me as those are paid APIs, however opensource TTS models do exists and I have also worked with some of these models before,  in the future if we want to run it locally we can use Chatterbox, Qwen, XTTS etc
-- src/conversation/prompts.ts
+- **src/conversation/prompts.ts**
         Builds prompt templates for English and German and enforces strict JSON response shape.
         - Initially I was thinking of having two separate prompts for intent detection and response but that would lead to a few problems.
                 - User might try to change intent mid conversation, User might not clearly state his intent until later
@@ -79,57 +79,57 @@ The application runs as a sequential pipeline.
                 5. Defining Intent switching rules.
                 6. Adding previous context and how to use it.
         - There are two versions one in English and one in German
-- src/intents/detector.ts
+- **src/intents/detector.ts**
         Runs intent detection and JSON repair fallback.
         - Uses the prompt to infer the LLM and parse the JSON response from the LLM
-- src/intents/handler.ts
+- **src/intents/handler.ts**
         Routes intent specific logic.
         - These are placeholder functions, specific actions based on the intent can be performed here once the necessary information has been retrieved from the user. 
-- src/memory/session.ts
+- **src/memory/session.ts**
         Stores in session conversation history and customer name, and other user and session details.
-- src/memory/memory.ts
+- **src/memory/memory.ts**
         Persists session records to JSON files.
         - Store the entire chat log into a json file for each user, this is not used currently but is stored for future use and logs.
-- src/memory/summary.ts
+- **src/memory/summary.ts**
         Generates and stores session summaries for continuity.
         - Uses the LLM to summarize the chat history of the current session into a smaller version with all the important and relevant information, this summarized version is then injected into future prompts for context
-- src/utils/config.ts
+- **src/utils/config.ts**
         Central config for models language and audio settings.
         - Defines settings for whisper, gemini, ollama, tts and audio recorder (more details in README.md)
 
 
 ## 3. Setup and run instructions
 
-Detailed setup is in README.md.
+Detailed setup is in **README.md**.
 
 ### Quick run
 
 - Install system tools on macOS.
-        brew install ffmpeg sox
+  brew install ffmpeg sox
 - Install dependencies.
-        npm install
+  npm install
 - Set API key if Gemini provider is active.
-        export GEMINI_API_KEY="your_api_key_here"
+  export GEMINI_API_KEY="your_api_key_here"
 - Build project.
-        npm run build
+  npm run build
 - Start app.
-        npm run start
+  npm run start
 
 ### CLI commands
 
 - r <seconds>
-        Record microphone audio and process it.
+  Record microphone audio and process it.
 - f <filename>
-        Process an existing audio file from audio folder.
+  Process an existing audio file from audio folder.
 - l <en|de>
-        Switch language and voice.
+  Switch language and voice.
 - q
-        End session and save memory plus summary.
+  End session and save memory plus summary.
 
 ## 4. LLM STT TTS choices and justification
 ### LLM choice
 
-- Also explained in detail in the llm.ts section of this doc 
+- Also explained in detail in the **llm.ts** section of this doc 
 
 - Default provider is Gemini because it is fast and free for developers and good for short turn based conversation
 - The project needs structured JSON output and Gemini performs well for this pattern.
@@ -144,7 +144,7 @@ Detailed setup is in README.md.
 
 ### TTS choice
 
-- More details are also provided in the tts.ts section of this doc.
+- More details are also provided in the **tts.ts** section of this doc.
 
 - macOS say is used because the case study target environment is Apple Silicon macOS.
 - Setup is simple and local with no extra cloud dependency.
@@ -153,7 +153,7 @@ Detailed setup is in README.md.
 ## 5. Prompt design and version notes
 ### Design goals
 
-- More details mentions in prompts.ts section of this doc.
+- More details mentions in **prompts.ts** section of this doc.
 
 - Keep assistant responses short for voice playback.
 - Enforce strict JSON output for reliable parsing.
@@ -173,15 +173,15 @@ Detailed setup is in README.md.
 ### Prompt evolution
 
 - Version 1
-        Basic intent classification.
+  Basic intent classification.
 - Version 2
-        Strict JSON only output requirement.
+  Strict JSON only output requirement.
 - Version 3
-        Voice friendly response length control.
+  Voice friendly response length control.
 - Version 4
-        Session continuity with previous summary context.
+  Session continuity with previous summary context.
 - Version 5
-        English and German templates with intent specific instructions.
+  English and German templates with intent specific instructions.
 
 ## 6. Task 2 intent handling behavior
 ### Implemented intents
@@ -207,8 +207,8 @@ Detailed setup is in README.md.
 ### Session end behavior
 
 - On q command the session is ended.
-- The session is persisted to data/memory.
-- A summary is generated via llm and saved to data/summaries, this is used in future session.
+- The session is persisted to **data/memory**.
+- A summary is generated via llm and saved to **data/summaries**, this is used in future session.
 - A new clean session object is created.
 
 ### Cross session memory bonus
@@ -222,9 +222,9 @@ The code logs elapsed time for key stages in milliseconds.
 
 ### Logged stages
 
-- STT timer in src/pipeline/stt.ts
-- LLM timer in src/pipeline/llm.ts
-- TTS timer in src/pipeline/tts.ts
+- STT timer in **src/pipeline/stt.ts**
+- LLM timer in **src/pipeline/llm.ts**
+- TTS timer in **src/pipeline/tts.ts**
 
 ![STT response time](image.png)
 
@@ -232,10 +232,10 @@ The code logs elapsed time for key stages in milliseconds.
 
 ![TTS response time](image-2.png)
 
-        -Note: this includes the time taken to pronouce the sentence
+- Note: this includes the time taken to pronouce the sentence
 
 - These times can be improved significantly by using realtime inference to models
-        - Whisper and XTTS both have realtime libraries for python , but will these to modify some libraries and look into greater depth for Typescript.
+  - Whisper and XTTS both have realtime libraries for python , but will these to modify some libraries and look into greater depth for Typescript.
 - These times are be greatly reduced by using better hardware for faster inference speeds and better models.
 
 
@@ -250,11 +250,60 @@ It uses macOS native speech command and was tested on M series hardware.
 
 - Output of uname -m.
 
-        ![uname]](image-3.png)
+        ![uname](image-3.png)
 
 - Output of node -v and npm -v.
 
-## 10. Known limitations and improvements
+## 10. Libraries used
+
+### Project dependencies from package.json
+
+- **@google/genai**
+        - Purpose: Gemini API client for cloud LLM inference.
+        - Used in **src/pipeline/llm.ts** for chat creation and response generation when provider is set to Gemini.
+
+- **ollama**
+        - Purpose: Local LLM client for running models through Ollama.
+        - Used in **src/pipeline/llm.ts** as local inference option.
+
+- **nodejs-whisper**
+        - Purpose: TypeScript friendly wrapper to run Whisper transcription.
+        - Used in **src/pipeline/stt.ts** for speech to text transcription.
+
+- **whisper.cpp**
+        - Purpose: Base Whisper runtime dependency used by nodejs-whisper.
+        - Used indirectly through **nodejs-whisper** for local STT execution.
+
+- **@types/node** (dev dependency)
+        - Purpose: Node.js TypeScript type definitions.
+        - Used during development and build time for type safety across Node APIs.
+
+### System tools used by the pipeline
+
+- **sox**
+        - Purpose: Microphone audio capture.
+        - Used in **src/pipeline/audio.ts**.
+
+- **ffmpeg**
+        - Purpose: Audio conversion to pipeline compatible WAV format.
+        - Used in **src/pipeline/audio.ts**.
+
+- **macOS say**
+        - Purpose: Native text to speech output.
+        - Used in **src/pipeline/tts.ts**.
+
+### Node.js built in modules used
+
+- **child_process**
+        - Used for calling system tools and TTS.
+- **fs** and **path**
+        - Used for file handling and storage paths.
+- **crypto**
+        - Used for session or user identifiers.
+- **readline** and **url**
+        - Used for CLI interaction and runtime path handling.
+
+## 11. Known limitations and improvements
 
 ### Known limitations
 
@@ -277,5 +326,5 @@ It uses macOS native speech command and was tested on M series hardware.
 
 ## 12. AI usage summary
 
-A separate declaration file is provided in AI_USAGE.md.
+A separate declaration file is provided in **AI_USAGE.md**.
 That file explains where AI was used and where manual work was done.
