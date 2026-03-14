@@ -14,3 +14,18 @@ export async function queryLLM(messages: Message[]): Promise<string> {
     console.log(`LLM process has been running for ${timer.end()} milliseconds.`);
     return response.message.content;
 }
+
+import { GoogleGenAI } from "@google/genai";
+
+// The client gets the API key from the environment variable `GEMINI_API_KEY`.
+const ai = new GoogleGenAI({});
+
+export async function queryGemini(messages: Message[]): Promise<string> {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: "Explain how AI works in a few words",
+  });
+
+  console.log(response.text);
+  return response.text ? response.text : "Sorry, I couldn't generate a response.";
+}
