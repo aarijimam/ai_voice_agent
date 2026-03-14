@@ -36,25 +36,25 @@ The application runs as a sequential pipeline.
 
 - src/index.ts
         Starts CLI and handles commands r f l q, also asks the user's phone number on start to identify
-        - This can be a good identifies in actual cases as user will be calling from his phone
+            - This can be a good identifies in actual cases as user will be calling from his phone
 - src/agent.ts
         Main orchestrator for audio processing text processing intent handling and speech output.
-        - Takes the audio and does the necessary processing on it pipeline is called here STT->LLM->TTS
+            - Takes the audio and does the necessary processing on it pipeline is called here STT->LLM->TTS
 - src/pipeline/audio.ts
         Handles microphone recording and audio conversion.
-        - Uses sox to record audio and contains ffmpeg call to convert if needed.
+            - Uses sox to record audio and contains ffmpeg call to convert if needed.
 - src/pipeline/stt.ts
         Runs Whisper transcription through nodejs whisper.
-        - This is a wrapper for whispercpp which is cpp implementation for whisper and supports accelerated inference on Apple Silicon, later we can fork and modify this library too for our need, specially realtime transcription can speed up the process.
+            - This is a wrapper for whispercpp which is cpp implementation for whisper and supports accelerated inference on Apple Silicon, later we can fork and modify this library too for our need, specially realtime transcription can speed up the process.
 - src/pipeline/llm.ts
         Runs LLM inference calls.
-        - Has too options based on the config file Ollama or Gemini, more options can also be added.
-        - I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
-        - LocalLLM tends to lose context faster gemini is good at this.
-        - For Gemini model
+            - Has too options based on the config file Ollama or Gemini, more options can also be added.
+            - I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
+            - LocalLLM tends to lose context faster gemini is good at this.
+            - For Gemini model
                 - I chose the "gemini-3.1-flash-lite-preview" because it is the latest flash lite model as we don't need that much context and designing for least latency a faster smaller model is better.
                 - I chose Gemini in particular because it offers a free api for developers for testing, in our case as we are not using media, or complex calculations the choice of models do not matter that much, I also tested with "gemini-3-flash-preview" and there was not much difference as we are also use limited tokens and sentence length.
-        - For Local LLM (Ollama)
+            - For Local LLM (Ollama)
                 - Choice first of all depended on the amount of RAM I had, being limited by 16 GB VRAM, I was limited to using the smaller parameter versions of the models.
                 - I tested will llama3.2:1b (1 billion params) but the output was too unreliable specially when it comes to JSON structure
                 - I test wth llama3.2:3b (3 billion params) the output was more reliable but the context window was too small and the model tended to lose context after a  4-5 messages from the user and often resulted in corrupted JSONs.
