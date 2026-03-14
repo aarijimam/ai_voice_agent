@@ -9,8 +9,8 @@ import { recordAudio } from "./pipeline/audio.js";
 export class Agent {
   private session: SessionManager;
 
-  constructor() {
-    this.session = new SessionManager();
+  constructor(userKey: string) {
+    this.session = new SessionManager(userKey);
   }
   
 
@@ -75,7 +75,7 @@ async processMicInput(durationSeconds = 5): Promise<void> {
   }
 
 
-  endSession() {
-    this.session.endSession();
+  async endSession(): Promise<void> {
+    await this.session.endSession();
   }
 }
