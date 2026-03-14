@@ -8,15 +8,61 @@
 - [ollama-js](https://github.com/ollama/ollama-js) - Ollama library for node
     - brew install ollama
     - ollama serve
-    - ollama pull llama3.2:3b
+    - ollama pull mistral:7b
 - prompt-sync
 
-## Gemini API key
-
-When using Gemini (`llm.provider = "gemini"`), set the API key before running:
 
 ```bash
 export GEMINI_API_KEY="your_api_key_here"
 ```
+Install system tools on macOS:
+
+```bash
+brew install ffmpeg sox
+```
+
+## Install
+
+```bash
+npm install
+```
+
+## Configure models
+
+Model/provider settings are in `src/utils/config.ts`.
+
+Default setup uses Gemini:
+
+```ts
+llm: { provider: "gemini" }
+gemini: { model: "gemini-3-flash-preview" }
+```
+
+If using Gemini, set your key before running:
+
+```bash
+export GEMINI_API_KEY="your_api_key_here"
+```
+
+If you want local inference, switch `llm.provider` to `"local"`, then run Ollama:
+
+```bash
+brew install ollama
+ollama serve
+ollama pull mistral:7b
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+## Start 
+
+```bash
+npm run start
+```
+
 
 
