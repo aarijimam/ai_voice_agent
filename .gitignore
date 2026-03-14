@@ -49,6 +49,8 @@ public/
 # Optional SvelteKit build output
 .svelte-kit/
 
-./whisper.cpp/  # Ignore the whisper.cpp directory if it exists
+# Ignore the whisper.cpp directory if it exists
+whisper.cpp/
 
-audio/temp/  # Ignore temporary audio files
+# Ignore temporary audio files
+audio/temp/
