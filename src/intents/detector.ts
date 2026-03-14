@@ -1,15 +1,17 @@
 import { queryLLM } from "../pipeline/llm.js";
 import type {Message} from './types.js';
 import type { IntentResult } from "./types.js";
-import {AGENT_PROMPT} from "../conversation/prompts.js";
+import { buildAgentPrompt} from "../conversation/prompts.js";
 import { repairJSON } from '../utils/json_repair.js';
+import type { Session } from "./types.js";
 
 
-export async function detectIntent(message: Message[]): Promise<IntentResult> {
+export async function detectIntent(message: Message[], session: Session): Promise<IntentResult> {
     const messages:Message[] = [
-        { role: "system", content: AGENT_PROMPT },
+        { role: "system", content: buildAgentPrompt(session) },
         ...message
     ];
+    console.log("Detecting intent with messages:", messages);
     const response = await queryLLM(messages);
     try {
         console.log("LLM Response for intent detection:", response);
@@ -19,9 +21,16 @@ export async function detectIntent(message: Message[]): Promise<IntentResult> {
               parsed.customerName.trim() !== '' 
               ? parsed.customerName.trim() 
               : null;
-        return { intent: parsed.intent, confidence: parsed.confidence, customerName: customerName, llm_response: parsed.llm_response };
+        return { 
+            intent: parsed.intent,
+             intentSwitch: parsed.intentSwitch,
+              abandonPrevious: parsed.abandonPrevious,
+               confidence: parsed.confidence, 
+               customerName: customerName,
+                llm_response: parsed.llm_response };
+
     } catch (error) {
         console.error("Failed to parse LLM response:", error);
-        return { intent: "unknown", confidence: 0.0 , customerName: null, llm_response: "Sorry, I couldn't understand that, can you please rephrase?"};
+        return { intent: "unknown", confidence: 0.0 , intentSwitch: false, abandonPrevious: false, customerName: null, llm_response: "Sorry, I couldn't understand that, can you please rephrase?"};
     }
 }
