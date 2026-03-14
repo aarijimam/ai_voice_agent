@@ -19,4 +19,26 @@ When using Gemini (`llm.provider = "gemini"`), set the API key before running:
 export GEMINI_API_KEY="your_api_key_here"
 ```
 
+## Simple frontend (call simulator)
+
+This project includes a minimal call simulator UI in `public/index.html` served by `src/server.ts`.
+
+### Run
+
+```bash
+npm install
+npm run build
+npm run start:web
+```
+
+Open `http://localhost:3000` in your browser.
+
+### Notes
+
+- Click **Start Recording**, speak, then click **Stop Recording**.
+- The web UI sends recorded audio to `POST /api/call`.
+- Backend pipeline: browser audio -> ffmpeg convert to wav -> STT -> intent/LLM -> TTS.
+- The response audio is returned to the browser and played back automatically.
+- `POST /api/chat` still exists for text-only testing.
+
 

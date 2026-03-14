@@ -5,6 +5,12 @@ import { handleIntent } from "./intents/handler.js";
 import { textToSpeech } from "./pipeline/tts.js";
 import { transcribeAudio } from "./pipeline/stt.js";
 import { recordAudio } from "./pipeline/audio.js";
+import type { IntentResult } from "./intents/types.js";
+
+interface ProcessTextOptions {
+  speak?: boolean;
+  outputFilePath?: string;
+}
 
 export class Agent {
   private session: SessionManager;
@@ -14,29 +20,28 @@ export class Agent {
   }
   
 
-async processMicInput(durationSeconds = 5): Promise<void> {
+async processMicInput(durationSeconds = 5): Promise<IntentResult> {
     console.log(`[AGENT] Listening for ${durationSeconds}s...`);
     const audioPath = await recordAudio(durationSeconds);
-    await this.processAudioFile(audioPath);
+    return this.processAudioFile(audioPath);
   }
 
-  async processAudioFile(audioFilePath: string): Promise<void> {
+  async processAudioFile(audioFilePath: string): Promise<IntentResult> {
     if (!fs.existsSync(audioFilePath)) {
       throw new Error(
         `Critical Failure: Audio file not found at ${audioFilePath}`,
       );
-    }else{
+    } else {
         console.log(`Audio file found at ${audioFilePath}, proceeding with processing.`);
-        transcribeAudio(audioFilePath).then(transcript => {
-            console.log("Transcribed Text:", transcript);
-            this.processTextMessage(transcript);
-        }).catch(error => {
-            console.error("Error during audio processing:", error);
-        });
+        const transcript = await transcribeAudio(audioFilePath);
+        console.log("Transcribed Text:", transcript);
+        return this.processTextMessage(transcript);
     }
-    }
+  }
 
-  async processTextMessage(text: string): Promise<void> {
+    async processTextMessage(text: string, options: ProcessTextOptions = {}): Promise<IntentResult> {
+
+      const { speak = true, outputFilePath = `./output/response_${Date.now()}.wav` } = options;
 
         this. session.addMessage("user", text);
 
@@ -50,12 +55,13 @@ async processMicInput(durationSeconds = 5): Promise<void> {
         }
         
         const assistantMessage = intentResult.llm_response;
-        handleIntent(intentResult, text); // This will do any processing needed based on the intent.
+        await handleIntent(intentResult, text); // This will do any processing needed based on the intent.
         if (intentResult.intent !== "unknown") {
             this.session.addMessage("assistant", assistantMessage);
         }
 
-         await textToSpeech(assistantMessage, `./output/response_${Date.now()}.wav`, true);
+          await textToSpeech(assistantMessage, outputFilePath, speak);
+         return intentResult;
         
   }
 
