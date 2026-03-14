@@ -54,3 +54,5 @@ whisper.cpp/
 
 # Ignore temporary audio files
 audio/temp/
+
+models/
