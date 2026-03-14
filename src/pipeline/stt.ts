@@ -1,6 +1,7 @@
 import { nodewhisper } from 'nodejs-whisper';
 import { startTimer } from '../utils/logger.js';
 import { config } from '../utils/config.js';
+import { debugLog } from '../utils/debug.js';
 
 const quietWhisperLogger = {
     debug: () => {},
@@ -35,9 +36,9 @@ export async function transcribeAudio(filePath: string, shouldDelete: boolean): 
     })
 
     const cleanTranscript = stripWhisperTimestamps(response);
-    console.log("[STT] response:", cleanTranscript);
+    debugLog("[STT] response:", cleanTranscript);
     
     const duration = timer.end();
-    console.log(`STT process has been running for ${duration} milliseconds.`);
+    debugLog(`STT process has been running for ${duration} milliseconds.`);
     return cleanTranscript;
 }

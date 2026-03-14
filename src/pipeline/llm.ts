@@ -3,6 +3,7 @@ import { startTimer } from '../utils/logger.js';
 import type {Message} from '../intents/types.js';
 import { config } from '../utils/config.js';
 import { GoogleGenAI } from "@google/genai";
+import { debugLog } from '../utils/debug.js';
 
 export async function queryLLM(messages: Message[]): Promise<string> {
     if (config.llm.provider === "gemini") {
@@ -16,7 +17,7 @@ export async function queryLLM(messages: Message[]): Promise<string> {
         messages: messages
     })
     const elapsed = timer.end();
-    console.log(`LLM process has been running for ${elapsed} milliseconds.`);
+    debugLog(`LLM process has been running for ${elapsed} milliseconds.`);
     return response.message.content;
 }
 
@@ -70,6 +71,6 @@ export async function queryGemini(messages: Message[]): Promise<string> {
   });
 
   const elapsed = timer.end();
-  console.log(`Gemini process has been running for ${elapsed} milliseconds.`);
+  debugLog(`Gemini process has been running for ${elapsed} milliseconds.`);
   return response.text ? response.text : "Sorry, I couldn't generate a response.";
 }

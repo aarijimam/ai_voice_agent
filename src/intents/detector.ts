@@ -5,6 +5,7 @@ import { buildAgentPrompt} from "../conversation/prompts.js";
 import { repairJSON } from '../utils/json_repair.js';
 import type { Session } from "./types.js";
 import { config } from "../utils/config.js";
+import { debugLog } from "../utils/debug.js";
 
 
 export async function detectIntent(message: Message[], session: Session): Promise<IntentResult> {
@@ -13,10 +14,10 @@ export async function detectIntent(message: Message[], session: Session): Promis
         { role: "system", content: buildAgentPrompt(session, useGermanPrompt) },
         ...message
     ];
-    console.log("Detecting intent with messages:", messages);
+    debugLog("Detecting intent with messages:", messages);
     const response = await queryLLM(messages);
     try {
-        console.log("LLM Response for intent detection:", response);
+        debugLog("LLM Response for intent detection:", response);
         const parsed = JSON.parse(repairJSON(response));
         const customerName = parsed.customerName && 
               parsed.customerName !== 'null' && 

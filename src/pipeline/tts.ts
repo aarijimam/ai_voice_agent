@@ -1,6 +1,7 @@
 import {execSync} from 'child_process';
 import { startTimer } from '../utils/logger.js';
 import { config } from '../utils/config.js';
+import { debugLog } from '../utils/debug.js';
 
 
 export async function textToSpeech(text: string, outputFilePath: string, speak: boolean): Promise<void> {
@@ -12,5 +13,5 @@ export async function textToSpeech(text: string, outputFilePath: string, speak: 
         execSync(`say -v ${config.tts.voice} "${safe}" -o ${outputFilePath}`);
     }
     const duration = timer.end();
-    console.log(`TTS process has been running for ${duration} milliseconds.`);
+    debugLog(`TTS process has been running for ${duration} milliseconds.`);
 }
