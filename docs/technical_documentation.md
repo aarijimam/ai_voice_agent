@@ -230,7 +230,22 @@ Detailed setup is in **README.md**.
 
 ## 8. Latency logging evidence
 
-The code logs elapsed time for key stages in milliseconds.
+The code logs elapsed time for key stages in milliseconds and persists per-turn benchmark rows to CSV.
+
+### CSV benchmark output
+
+- File path: **data/benchmarks/latency.csv**
+- Row granularity: one row per processed interaction (microphone or file input)
+- Columns:
+  - timestamp
+  - sessionId
+  - userKey
+  - inputSource
+  - sttMs
+  - llmMs
+  - ttsMs
+  - totalMs
+  - status
 
 ### Logged stages
 
@@ -244,7 +259,8 @@ The code logs elapsed time for key stages in milliseconds.
 
 ![TTS response time](image-2.png)
 
-- Note: this includes the time taken to pronouce the sentence
+- **IMPORTANT:** `ttsMs` includes the full time required for TTS to speak the complete sentence, and `totalMs` also includes this complete TTS speaking duration.
+- **NOTE:** Because local models are used in this project path (local Whisper and optional local LLM via Ollama), measured latency is highly dependent on model size, Apple Silicon hardware capability, and current machine load.
 
 - These times can be improved significantly by using realtime inference to models
   - Whisper and XTTS both have realtime libraries for python , but will these to modify some libraries and look into greater depth for Typescript.
