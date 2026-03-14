@@ -1,4 +1,9 @@
+export type LlmProvider = "local" | "gemini";
+
 export const config = {
+  llm: {
+    provider: "gemini" as LlmProvider,
+  },
   whisper: {
     model: "small.en",
   },
@@ -12,6 +17,10 @@ export const config = {
   tts: {
     voice: "Samantha",
   }, 
+  gemini: {
+    model: "gemini-3-flash-preview",
+    apiKey: process.env.GEMINI_API_KEY ?? "",
+  },
 
   audio: {
     sampleRate: 16000,
