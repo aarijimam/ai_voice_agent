@@ -11,4 +11,12 @@
     - ollama pull llama3.2:3b
 - prompt-sync
 
+## Gemini API key
+
+When using Gemini (`llm.provider = "gemini"`), set the API key before running:
+
+```bash
+export GEMINI_API_KEY="your_api_key_here"
+```
+
 
