@@ -90,6 +90,8 @@ npm run start
 
 ## Development
 
+*Note: nodejs-whisper library logs some things to console by default which can't be disabled directly*
+
 ```bash
 npm run dev
 ```
