@@ -279,8 +279,6 @@ It uses macOS native speech command and was tested on M series hardware.
 - Output of uname -m.
 - ![uname](image-3.png)
 
-- Output of node -v and npm -v.
-
 ## 10. Libraries used
 
 ### Project dependencies from package.json
