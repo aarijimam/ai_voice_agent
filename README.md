@@ -135,7 +135,7 @@ The app logs timing in milliseconds for key steps and writes per-turn benchmark 
 
 ## Related docs
 
-- docs/technical_documentation.md
+- docs/TECHNICAL_DOCUMENTATION.md
 - docs/AI_USAGE.md
 
 
