@@ -60,7 +60,7 @@ function prompt() {
 
     switch (cmd) {
       case "r":
-        await agent.processMicInput(5);
+        await agent.processMicInput(args[0] ? parseInt(args[0], 10) : 5);
         break;
       case "f":
         await agent.processAudioFile(args[0] ?  path.resolve(__dirname, `../audio/${args[0]}`) : "./audio/default.wav");
