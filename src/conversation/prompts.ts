@@ -5,6 +5,23 @@ import { config } from "../utils/config.js";
 export function buildAgentPrompt(session: Session, useGermanPrompt = config.whisper.language === "de"): string {
   const name = session.customerName ?? "the customer";
   const currentIntent = session.getCurrentIntent();
+  const previousSummary = session.previousSessionSummary?.trim();
+  const previousSummaryContextEn = previousSummary
+    ? `
+PREVIOUS SESSION CONTEXT (for continuity only):
+${previousSummary}
+
+Use this only as background context from the previous session. Do not treat it as facts for the current turn unless the customer confirms.
+`
+    : "";
+  const previousSummaryContextDe = previousSummary
+    ? `
+KONTEXT AUS VORHERIGER SITZUNG (nur zur Kontinuität):
+${previousSummary}
+
+Nutze dies nur als Hintergrundkontext aus der vorherigen Sitzung. Behandle es nicht als aktuelle Fakten, außer der Kunde bestätigt sie.
+`
+    : "";
 
   const intentContext = useGermanPrompt
     ? currentIntent
@@ -20,6 +37,7 @@ You are a highly efficient, empathetic AI voice agent for an insurance company.
 You are speaking with ${name}.
 
 ${intentContext}
+${previousSummaryContextEn}
 
 CORE CAPABILITIES & INTENTS:
 1. policy_enquiry: Checking policy status, coverage limits, and renewal details.
@@ -69,6 +87,7 @@ Du bist ein hocheffizienter, empathischer KI-Sprachassistent für eine Versicher
 Du sprichst mit ${name}.
 
 ${intentContext}
+${previousSummaryContextDe}
 
 KERNFÄHIGKEITEN & INTENTS:
 1. policy_enquiry: Prüfen von Policenstatus, Deckungslimits und Verlängerungsdetails.
