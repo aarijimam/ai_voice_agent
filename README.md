@@ -1,5 +1,9 @@
 # ai_voice_agent
 
+
+## Tested On:
+- Macbook Pro with M1 PRO with 16 GB Ram - macOS Tahoe 26.3
+
 ## Dependencies (temp)
 - [nodejs-whisper](https://github.com/ChetanXpro/nodejs-whisper) – Node.js wrapper for Whisper
 - [whisper.cpp](https://github.com/ggerganov/whisper.cpp) – (Optional, can be removed)
