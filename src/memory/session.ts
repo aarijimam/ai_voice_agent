@@ -33,6 +33,14 @@ export class SessionManager {
         this.session.customerName = name;
     }
 
+    getCustomerName(): string | null {
+        return this.session.customerName || null;
+    }
+
+    getMessages(): Message[] {
+        return this.session.history;
+    }
+
     endSession() {
         this.session = this.createSession();
     }   
