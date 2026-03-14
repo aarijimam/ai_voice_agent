@@ -34,68 +34,80 @@ The application runs as a sequential pipeline.
 
 ### Components
 
-- **src/index.ts**
-        Starts CLI and handles commands r f l q, also asks the user's phone number on start to identify
-        - This can be a good identifies in actual cases as user will be calling from his phone
-- **src/agent.ts**
-        Main orchestrator for audio processing text processing intent handling and speech output.
-        - Takes the audio and does the necessary processing on it pipeline is called here STT->LLM->TTS
-- **src/pipeline/audio.ts**
-        Handles microphone recording and audio conversion.
-        - Uses sox to record audio and contains ffmpeg call to convert if needed.
-- **src/pipeline/stt.ts**
-        Runs Whisper transcription through nodejs whisper.
-        - This is a wrapper for whispercpp which is cpp implementation for whisper and supports accelerated inference on Apple Silicon, later we can fork and modify this library too for our need, specially realtime transcription can speed up the process.
-- **src/pipeline/llm.ts**
-        Runs LLM inference calls.
-        - Has too options based on the config file Ollama or Gemini, more options can also be added.
-        - I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
-        - LocalLLM tends to lose context faster gemini is good at this.
-        - For Gemini model
-                - I chose the "gemini-3.1-flash-lite-preview" because it is the latest flash lite model as we don't need that much context and designing for least latency a faster smaller model is better.
-                - I chose Gemini in particular because it offers a free api for developers for testing, in our case as we are not using media, or complex calculations the choice of models do not matter that much, I also tested with "gemini-3-flash-preview" and there was not much difference as we are also use limited tokens and sentence length.
-        - For Local LLM (Ollama)
-                - Choice first of all depended on the amount of RAM I had, being limited by 16 GB VRAM, I was limited to using the smaller parameter versions of the models.
-                - I tested will llama3.2:1b (1 billion params) but the output was too unreliable specially when it comes to JSON structure
-                - I test wth llama3.2:3b (3 billion params) the output was more reliable but the context window was too small and the model tended to lose context after a  4-5 messages from the user and often resulted in corrupted JSONs.
-                - Mistral:7b was able to provide reliable results as well as maintain a larger amount of context, it also seemed to reply with the correct structure most of the times, this was also the biggest model in param sizes, so the quality of output was naturally better
-- **src/pipeline/tts.ts**
-        Uses macOS say for voice response.
-        - As we sticking to only Apple Silicon macOS say was the fastest and easiest ooption to implement, it supports voices in both English and German and the latency is very minimum and can run on any mac, however the audio quality is not ideal.
-        - As I wanted to stick to local models, ElevenLabs or OpenAI TTS were not an option for me as those are paid APIs, however opensource TTS models do exists and I have also worked with some of these models before,  in the future if we want to run it locally we can use Chatterbox, Qwen, XTTS etc
-- **src/conversation/prompts.ts**
-        Builds prompt templates for English and German and enforces strict JSON response shape.
-        - Initially I was thinking of having two separate prompts for intent detection and response but that would lead to a few problems.
-                - User might try to change intent mid conversation, User might not clearly state his intent until later
-                - If we also wanted to detect the change in intent, we would have to run two llm inference which would add to the latency.
-        - I decided on uses a hybrid approach where I am using only one sytem prompts, which is built each time using the current intent and name of the customer, and also watches for change in intent from the user, this way I was able to provide specific instructions for each other as well watch for a change in intent.
-        - I also wanted to keep the size of the system prompt small because I was using small local models, when using online apis we can use more complex and detailed prompts as well.
-        - For designing the prompt my approach was to use JSON to extract intent and change in intent, I also wanted to provide specific instructions based on the current intent, I started designing the prompt as follows:
-                1. Start by defining strict JSON structure
-                2. Telling the LLM what it is "a helpful insurance agent"
-                3. Defining what each intent means and giving examples
-                4. Appending specific sample instructions for current intent
-                4. Using the customer's name and asking it if not known.
-                5. Defining Intent switching rules.
-                6. Adding previous context and how to use it.
-        - There are two versions one in English and one in German
-- **src/intents/detector.ts**
-        Runs intent detection and JSON repair fallback.
-        - Uses the prompt to infer the LLM and parse the JSON response from the LLM
-- **src/intents/handler.ts**
-        Routes intent specific logic.
-        - These are placeholder functions, specific actions based on the intent can be performed here once the necessary information has been retrieved from the user. 
-- **src/memory/session.ts**
-        Stores in session conversation history and customer name, and other user and session details.
-- **src/memory/memory.ts**
-        Persists session records to JSON files.
-        - Store the entire chat log into a json file for each user, this is not used currently but is stored for future use and logs.
-- **src/memory/summary.ts**
-        Generates and stores session summaries for continuity.
-        - Uses the LLM to summarize the chat history of the current session into a smaller version with all the important and relevant information, this summarized version is then injected into future prompts for context
-- **src/utils/config.ts**
-        Central config for models language and audio settings.
-        - Defines settings for whisper, gemini, ollama, tts and audio recorder (more details in README.md)
+#### **src/index.ts**
+Starts CLI and handles commands r f l q, also asks the user's phone number on start to identify
+- This can be a good identifies in actual cases as user will be calling from his phone
+
+#### **src/agent.ts**
+Main orchestrator for audio processing text processing intent handling and speech output.
+- Takes the audio and does the necessary processing on it pipeline is called here STT->LLM->TTS
+
+#### **src/pipeline/audio.ts**
+Handles microphone recording and audio conversion.
+- Uses sox to record audio and contains ffmpeg call to convert if needed.
+
+#### **src/pipeline/stt.ts**
+Runs Whisper transcription through nodejs whisper.
+- This is a wrapper for whispercpp which is cpp implementation for whisper and supports accelerated inference on Apple Silicon, later we can fork and modify this library too for our need, specially realtime transcription can speed up the process.
+
+#### **src/pipeline/llm.ts**
+Runs LLM inference calls.
+- Has too options based on the config file Ollama or Gemini, more options can also be added.
+- I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
+- LocalLLM tends to lose context faster gemini is good at this.
+- For Gemini model
+  - I chose the "gemini-3.1-flash-lite-preview" because it is the latest flash lite model as we don't need that much context and designing for least latency a faster smaller model is better.
+  - I chose Gemini in particular because it offers a free api for developers for testing, in our case as we are not using media, or complex calculations the choice of models do not matter that much, I also tested with "gemini-3-flash-preview" and there was not much difference as we are also use limited tokens and sentence length.
+- For Local LLM (Ollama)
+  - Choice first of all depended on the amount of RAM I had, being limited by 16 GB VRAM, I was limited to using the smaller parameter versions of the models.
+  - I tested will llama3.2:1b (1 billion params) but the output was too unreliable specially when it comes to JSON structure
+  - I test wth llama3.2:3b (3 billion params) the output was more reliable but the context window was too small and the model tended to lose context after a  4-5 messages from the user and often resulted in corrupted JSONs.
+  - Mistral:7b was able to provide reliable results as well as maintain a larger amount of context, it also seemed to reply with the correct structure most of the times, this was also the biggest model in param sizes, so the quality of output was naturally better
+
+#### **src/pipeline/tts.ts**
+Uses macOS say for voice response.
+- As we sticking to only Apple Silicon macOS say was the fastest and easiest ooption to implement, it supports voices in both English and German and the latency is very minimum and can run on any mac, however the audio quality is not ideal.
+- As I wanted to stick to local models, ElevenLabs or OpenAI TTS were not an option for me as those are paid APIs, however opensource TTS models do exists and I have also worked with some of these models before,  in the future if we want to run it locally we can use Chatterbox, Qwen, XTTS etc
+
+#### **src/conversation/prompts.ts**
+Builds prompt templates for English and German and enforces strict JSON response shape.
+- Initially I was thinking of having two separate prompts for intent detection and response but that would lead to a few problems.
+  - User might try to change intent mid conversation, User might not clearly state his intent until later
+  - If we also wanted to detect the change in intent, we would have to run two llm inference which would add to the latency.
+- I decided on uses a hybrid approach where I am using only one sytem prompts, which is built each time using the current intent and name of the customer, and also watches for change in intent from the user, this way I was able to provide specific instructions for each other as well watch for a change in intent.
+- I also wanted to keep the size of the system prompt small because I was using small local models, when using online apis we can use more complex and detailed prompts as well.
+- For designing the prompt my approach was to use JSON to extract intent and change in intent, I also wanted to provide specific instructions based on the current intent, I started designing the prompt as follows:
+  1. Start by defining strict JSON structure
+  2. Telling the LLM what it is "a helpful insurance agent"
+  3. Defining what each intent means and giving examples
+  4. Appending specific sample instructions for current intent
+  4. Using the customer's name and asking it if not known.
+  5. Defining Intent switching rules.
+  6. Adding previous context and how to use it.
+- There are two versions one in English and one in German
+
+#### **src/intents/detector.ts**
+Runs intent detection and JSON repair fallback.
+- Uses the prompt to infer the LLM and parse the JSON response from the LLM
+
+#### **src/intents/handler.ts**
+Routes intent specific logic.
+- These are placeholder functions, specific actions based on the intent can be performed here once the necessary information has been retrieved from the user.
+
+#### **src/memory/session.ts**
+Stores in session conversation history and customer name, and other user and session details.
+
+#### **src/memory/memory.ts**
+Persists session records to JSON files.
+- Store the entire chat log into a json file for each user, this is not used currently but is stored for future use and logs.
+
+#### **src/memory/summary.ts**
+Generates and stores session summaries for continuity.
+- Uses the LLM to summarize the chat history of the current session into a smaller version with all the important and relevant information, this summarized version is then injected into future prompts for context
+
+#### **src/utils/config.ts**
+Central config for models language and audio settings.
+- Defines settings for whisper, gemini, ollama, tts and audio recorder (more details in README.md)
 
 
 ## 3. Setup and run instructions
@@ -249,8 +261,7 @@ It uses macOS native speech command and was tested on M series hardware.
 ### Evidence to include before submission
 
 - Output of uname -m.
-
-        ![uname](image-3.png)
+- ![uname](image-3.png)
 
 - Output of node -v and npm -v.
 
@@ -259,49 +270,49 @@ It uses macOS native speech command and was tested on M series hardware.
 ### Project dependencies from package.json
 
 - **@google/genai**
-        - Purpose: Gemini API client for cloud LLM inference.
-        - Used in **src/pipeline/llm.ts** for chat creation and response generation when provider is set to Gemini.
+  - Purpose: Gemini API client for cloud LLM inference.
+  - Used in **src/pipeline/llm.ts** for chat creation and response generation when provider is set to Gemini.
 
 - **ollama**
-        - Purpose: Local LLM client for running models through Ollama.
-        - Used in **src/pipeline/llm.ts** as local inference option.
+  - Purpose: Local LLM client for running models through Ollama.
+  - Used in **src/pipeline/llm.ts** as local inference option.
 
 - **nodejs-whisper**
-        - Purpose: TypeScript friendly wrapper to run Whisper transcription.
-        - Used in **src/pipeline/stt.ts** for speech to text transcription.
+  - Purpose: TypeScript friendly wrapper to run Whisper transcription.
+  - Used in **src/pipeline/stt.ts** for speech to text transcription.
 
 - **whisper.cpp**
-        - Purpose: Base Whisper runtime dependency used by nodejs-whisper.
-        - Used indirectly through **nodejs-whisper** for local STT execution.
+  - Purpose: Base Whisper runtime dependency used by nodejs-whisper.
+  - Used indirectly through **nodejs-whisper** for local STT execution.
 
 - **@types/node** (dev dependency)
-        - Purpose: Node.js TypeScript type definitions.
-        - Used during development and build time for type safety across Node APIs.
+  - Purpose: Node.js TypeScript type definitions.
+  - Used during development and build time for type safety across Node APIs.
 
 ### System tools used by the pipeline
 
 - **sox**
-        - Purpose: Microphone audio capture.
-        - Used in **src/pipeline/audio.ts**.
+  - Purpose: Microphone audio capture.
+  - Used in **src/pipeline/audio.ts**.
 
 - **ffmpeg**
-        - Purpose: Audio conversion to pipeline compatible WAV format.
-        - Used in **src/pipeline/audio.ts**.
+  - Purpose: Audio conversion to pipeline compatible WAV format.
+  - Used in **src/pipeline/audio.ts**.
 
 - **macOS say**
-        - Purpose: Native text to speech output.
-        - Used in **src/pipeline/tts.ts**.
+  - Purpose: Native text to speech output.
+  - Used in **src/pipeline/tts.ts**.
 
 ### Node.js built in modules used
 
 - **child_process**
-        - Used for calling system tools and TTS.
+  - Used for calling system tools and TTS.
 - **fs** and **path**
-        - Used for file handling and storage paths.
+  - Used for file handling and storage paths.
 - **crypto**
-        - Used for session or user identifiers.
+  - Used for session or user identifiers.
 - **readline** and **url**
-        - Used for CLI interaction and runtime path handling.
+  - Used for CLI interaction and runtime path handling.
 
 ## 11. Known limitations and improvements
 
