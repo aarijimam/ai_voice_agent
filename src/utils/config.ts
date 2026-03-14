@@ -1,12 +1,15 @@
 export type LlmProvider = "local" | "gemini";
 
+
+const whisperLanguage = "de";
+
 export const config = {
   llm: {
     provider: "gemini" as LlmProvider,
   },
   whisper: {
     model: "medium",
-    language: "de",
+    language: whisperLanguage,
   },
   ollama: {
     model: "mistral:7b", 
@@ -16,7 +19,7 @@ export const config = {
     }
   },
   tts: {
-    voice: "Samantha",
+    voice: (whisperLanguage === "de" ? "Anna" : "Samantha"),
   }, 
   gemini: {
     model: "gemini-3.1-flash-lite-preview",
