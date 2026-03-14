@@ -2,6 +2,7 @@ import { queryLLM } from "../pipeline/llm.js";
 import type {Message} from './types.js';
 import type { IntentResult } from "./types.js";
 import {AGENT_PROMPT} from "../conversation/prompts.js";
+import { repairJSON } from '../utils/json_repair.js';
 
 
 export async function detectIntent(message: Message[]): Promise<IntentResult> {
@@ -12,7 +13,7 @@ export async function detectIntent(message: Message[]): Promise<IntentResult> {
     const response = await queryLLM(messages);
     try {
         console.log("LLM Response for intent detection:", response);
-        const parsed = JSON.parse(response);
+        const parsed = JSON.parse(repairJSON(response));
         return { intent: parsed.intent, confidence: parsed.confidence, customerName: parsed.customerName !== 'null' ? parsed.customerName : null, llm_response: parsed.llm_response };
     } catch (error) {
         console.error("Failed to parse LLM response:", error);
