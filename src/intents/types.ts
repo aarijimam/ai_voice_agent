@@ -24,6 +24,8 @@ export interface Message {
 
 export interface Session {
     sessionId: UUID;
+    userKey: string;
+    previousSessionSummary: string | null;
     customerName?: string | null;
     history: Message[];
     intent: IntentType;
