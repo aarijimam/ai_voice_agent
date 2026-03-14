@@ -1,7 +1,7 @@
 export type LlmProvider = "local" | "gemini";
 
 
-const whisperLanguage = "de";
+const whisperLanguage: string = "en";
 
 export const config = {
   llm: {
