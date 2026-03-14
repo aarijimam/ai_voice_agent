@@ -15,7 +15,11 @@ export class SessionManager {
             sessionId: randomUUID(),
             customerName: null,
             history: [],
-            startedAt: new Date()
+            intent: "unknown",
+            startedAt: new Date(),
+            getCurrentIntent() {    
+                return this.intent || "unknown";
+            }
         };
         return session;
     }
@@ -27,6 +31,10 @@ export class SessionManager {
     addMessage(role: "user" | "assistant", content: string){
         const message: Message = { role, content };
         this.session.history.push(message);
+    }
+
+    updateIntent(intent: string) {
+        this.session.intent = intent as Session["intent"]; 
     }
 
     updateCustomerName(name: string) {
