@@ -20,7 +20,7 @@ export class SessionManager {
         return session;
     }
 
-    getSession(sessionId: string): Session | undefined {
+    getSession(): Session | undefined {
         return this.session
     }
 
