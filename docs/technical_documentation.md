@@ -1,12 +1,13 @@
 # Technical Documentation
 
 ## 1. Case study alignment
+
 This project is built in TypeScript and runs as a CLI voice agent.
 It covers the required insurance intents and includes a full voice pipeline.
 English and German both are supported.
 The architecture is modular and each stage logs timing in milliseconds.
 
-Requirement status
+### Requirement status
 
 - Voice pipeline from audio input to spoken output is implemented.
 - Intent system with policy_enquiry report_claim schedule_appointment and unknown fallback is implemented.
@@ -15,9 +16,10 @@ Requirement status
 - Cross session memory is implemented with JSON files in data/memory and data/summaries.
 
 ## 2. System architecture
+
 The application runs as a sequential pipeline.
 
-Flow
+### Flow
 
 1. User gives input from microphone or audio file.
 2. Audio is captured or loaded.
@@ -30,117 +32,118 @@ Flow
 9. Text to speech plays the assistant response.
 10. Session summary is generated and stored when session ends.
 
-Components
+### Components
 
 - src/index.ts
-	Starts CLI and handles commands r f l q, also asks the user's phone number on start to identify
+        Starts CLI and handles commands r f l q, also asks the user's phone number on start to identify
         - This can be a good identifies in actual cases as user will be calling from his phone
 - src/agent.ts
-	Main orchestrator for audio processing text processing intent handling and speech output.
+        Main orchestrator for audio processing text processing intent handling and speech output.
         - Takes the audio and does the necessary processing on it pipeline is called here STT->LLM->TTS
 - src/pipeline/audio.ts
-	Handles microphone recording and audio conversion.
+        Handles microphone recording and audio conversion.
         - Uses sox to record audio and contains ffmpeg call to convert if needed.
 - src/pipeline/stt.ts
-	Runs Whisper transcription through nodejs whisper.
+        Runs Whisper transcription through nodejs whisper.
         - This is a wrapper for whispercpp which is cpp implementation for whisper and supports accelerated inference on Apple Silicon, later we can fork and modify this library too for our need, specially realtime transcription can speed up the process.
 - src/pipeline/llm.ts
-	Runs LLM inference calls.
+        Runs LLM inference calls.
         - Has too options based on the config file Ollama or Gemini, more options can also be added.
         - I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
         - LocalLLM tends to lose context faster gemini is good at this.
         - For Gemini model
-            - I chose the "gemini-3.1-flash-lite-preview" because it is the latest flash lite model as we don't need that much context and designing for least latency a faster smaller model is better.
-            - I chose Gemini in particular because it offers a free api for developers for testing, in our case as we are not using media, or complex calculations the choice of models do not matter that much, I also tested with "gemini-3-flash-preview" and there was not much difference as we are also use limited tokens and sentence length.
+                - I chose the "gemini-3.1-flash-lite-preview" because it is the latest flash lite model as we don't need that much context and designing for least latency a faster smaller model is better.
+                - I chose Gemini in particular because it offers a free api for developers for testing, in our case as we are not using media, or complex calculations the choice of models do not matter that much, I also tested with "gemini-3-flash-preview" and there was not much difference as we are also use limited tokens and sentence length.
         - For Local LLM (Ollama)
-            - Choice first of all depended on the amount of RAM I had, being limited by 16 GB VRAM, I was limited to using the smaller parameter versions of the models.
-            - I tested will llama3.2:1b (1 billion params) but the output was too unreliable specially when it comes to JSON structure
-            - I test wth llama3.2:3b (3 billion params) the output was more reliable but the context window was too small and the model tended to lose context after a  4-5 messages from the user and often resulted in corrupted JSONs.
-            - Mistral:7b was able to provide reliable results as well as maintain a larger amount of context, it also seemed to reply with the correct structure most of the times, this was also the biggest model in param sizes, so the quality of output was naturally better
+                - Choice first of all depended on the amount of RAM I had, being limited by 16 GB VRAM, I was limited to using the smaller parameter versions of the models.
+                - I tested will llama3.2:1b (1 billion params) but the output was too unreliable specially when it comes to JSON structure
+                - I test wth llama3.2:3b (3 billion params) the output was more reliable but the context window was too small and the model tended to lose context after a  4-5 messages from the user and often resulted in corrupted JSONs.
+                - Mistral:7b was able to provide reliable results as well as maintain a larger amount of context, it also seemed to reply with the correct structure most of the times, this was also the biggest model in param sizes, so the quality of output was naturally better
 - src/pipeline/tts.ts
-	Uses macOS say for voice response.
+        Uses macOS say for voice response.
         - As we sticking to only Apple Silicon macOS say was the fastest and easiest ooption to implement, it supports voices in both English and German and the latency is very minimum and can run on any mac, however the audio quality is not ideal.
         - As I wanted to stick to local models, ElevenLabs or OpenAI TTS were not an option for me as those are paid APIs, however opensource TTS models do exists and I have also worked with some of these models before,  in the future if we want to run it locally we can use Chatterbox, Qwen, XTTS etc
 - src/conversation/prompts.ts
-	Builds prompt templates for English and German and enforces strict JSON response shape.
+        Builds prompt templates for English and German and enforces strict JSON response shape.
         - Initially I was thinking of having two separate prompts for intent detection and response but that would lead to a few problems.
-            - User might try to change intent mid conversation, User might not clearly state his intent until later
-            - If we also wanted to detect the change in intent, we would have to run two llm inference which would add to the latency.
+                - User might try to change intent mid conversation, User might not clearly state his intent until later
+                - If we also wanted to detect the change in intent, we would have to run two llm inference which would add to the latency.
         - I decided on uses a hybrid approach where I am using only one sytem prompts, which is built each time using the current intent and name of the customer, and also watches for change in intent from the user, this way I was able to provide specific instructions for each other as well watch for a change in intent.
         - I also wanted to keep the size of the system prompt small because I was using small local models, when using online apis we can use more complex and detailed prompts as well.
-
         - For designing the prompt my approach was to use JSON to extract intent and change in intent, I also wanted to provide specific instructions based on the current intent, I started designing the prompt as follows:
-            1. Start by defining strict JSON structure
-            2. Telling the LLM what it is "a helpful insurance agent"
-            3. Defining what each intent means and giving examples
-            4. Appending specific sample instructions for current intent
-            4. Using the customer's name and asking it if not known.
-            5. Defining Intent switching rules.
-            6. Adding previous context and how to use it.
-        
+                1. Start by defining strict JSON structure
+                2. Telling the LLM what it is "a helpful insurance agent"
+                3. Defining what each intent means and giving examples
+                4. Appending specific sample instructions for current intent
+                4. Using the customer's name and asking it if not known.
+                5. Defining Intent switching rules.
+                6. Adding previous context and how to use it.
         - There are two versions one in English and one in German
 - src/intents/detector.ts
-	Runs intent detection and JSON repair fallback.
+        Runs intent detection and JSON repair fallback.
         - Uses the prompt to infer the LLM and parse the JSON response from the LLM
 - src/intents/handler.ts
-	Routes intent specific logic.
+        Routes intent specific logic.
         - These are placeholder functions, specific actions based on the intent can be performed here once the necessary information has been retrieved from the user. 
 - src/memory/session.ts
-	Stores in session conversation history and customer name, and other user and session details.
+        Stores in session conversation history and customer name, and other user and session details.
 - src/memory/memory.ts
-	Persists session records to JSON files.
+        Persists session records to JSON files.
         - Store the entire chat log into a json file for each user, this is not used currently but is stored for future use and logs.
 - src/memory/summary.ts
-	Generates and stores session summaries for continuity.
-     - Uses the LLM to summarize the chat history of the current session into a smaller version with all the important and relevant information, this summarized version is then injected into future prompts for context
+        Generates and stores session summaries for continuity.
+        - Uses the LLM to summarize the chat history of the current session into a smaller version with all the important and relevant information, this summarized version is then injected into future prompts for context
 - src/utils/config.ts
-	Central config for models language and audio settings.
-     - Defines settings for whisper, gemini, ollama, tts and audio recorder (more details in README.md)
+        Central config for models language and audio settings.
+        - Defines settings for whisper, gemini, ollama, tts and audio recorder (more details in README.md)
 
 
 ## 3. Setup and run instructions
+
 Detailed setup is in README.md.
 
-Quick run
+### Quick run
 
 - Install system tools on macOS.
-	brew install ffmpeg sox
+        brew install ffmpeg sox
 - Install dependencies.
-	npm install
+        npm install
 - Set API key if Gemini provider is active.
-	export GEMINI_API_KEY="your_api_key_here"
+        export GEMINI_API_KEY="your_api_key_here"
 - Build project.
-	npm run build
+        npm run build
 - Start app.
-	npm run start
+        npm run start
 
-CLI commands
+### CLI commands
 
 - r <seconds>
-	Record microphone audio and process it.
+        Record microphone audio and process it.
 - f <filename>
-	Process an existing audio file from audio folder.
+        Process an existing audio file from audio folder.
 - l <en|de>
-	Switch language and voice.
+        Switch language and voice.
 - q
-	End session and save memory plus summary.
+        End session and save memory plus summary.
 
 ## 4. LLM STT TTS choices and justification
-LLM choice
+### LLM choice
+
 - Also explained in detail in the llm.ts section of this doc 
 
 - Default provider is Gemini because it is fast and free for developers and good for short turn based conversation
 - The project needs structured JSON output and Gemini performs well for this pattern.
 - Ollama is available for offline testing and development, limited due to RAM limitations
 
-STT choice
+### STT choice
 
 - Whisper medium (to save ram) is used via nodejs whisper.
-    - More specific whisper models exists for english and german, but loading and unloading models adds overload, add will also need to modify the nodejs-whisper library to support custom models for german.
+        - More specific whisper models exists for english and german, but loading and unloading models adds overload, add will also need to modify the nodejs-whisper library to support custom models for german.
 - It gives stable transcription quality for conversational audio.
 - It supports multilingual use which helps for English and German scenarios.
 
-TTS choice
+### TTS choice
+
 - More details are also provided in the tts.ts section of this doc.
 
 - macOS say is used because the case study target environment is Apple Silicon macOS.
@@ -148,7 +151,8 @@ TTS choice
 - This supports fast prototyping and low integration overhead.
 
 ## 5. Prompt design and version notes
-Design goals
+### Design goals
+
 - More details mentions in prompts.ts section of this doc.
 
 - Keep assistant responses short for voice playback.
@@ -157,7 +161,7 @@ Design goals
 - Ask for customer name when missing and reuse it later.
 - Support English and German prompt variants.
 
-Current JSON schema used by the agent
+### Current JSON schema used by the agent
 
 - intent
 - intentSwitch
@@ -166,21 +170,21 @@ Current JSON schema used by the agent
 - customerName
 - llm_response
 
-Prompt evolution
+### Prompt evolution
 
 - Version 1
-	Basic intent classification.
+        Basic intent classification.
 - Version 2
-	Strict JSON only output requirement.
+        Strict JSON only output requirement.
 - Version 3
-	Voice friendly response length control.
+        Voice friendly response length control.
 - Version 4
-	Session continuity with previous summary context.
+        Session continuity with previous summary context.
 - Version 5
-	English and German templates with intent specific instructions.
+        English and German templates with intent specific instructions.
 
 ## 6. Task 2 intent handling behavior
-Implemented intents
+### Implemented intents
 
 - policy_enquiry
 - report_claim
@@ -188,85 +192,90 @@ Implemented intents
 - general_conversation
 - unknown
 
-Fallback behavior
+### Fallback behavior
 
 - If model output cannot be parsed as JSON then the detector returns unknown.
 - The agent responds with a safe fallback message asking the user to rephrase.
 
 ## 7. Task 3 memory and context behavior
-In session memory
+### In session memory
 
 - Conversation history is stored turn by turn.
 - Customer name is captured and reused in later turns.
 - Current intent is tracked and updated during conversation.
 
-Session end behavior
+### Session end behavior
 
 - On q command the session is ended.
 - The session is persisted to data/memory.
 - A summary is generated via llm and saved to data/summaries, this is used in future session.
 - A new clean session object is created.
 
-Cross session memory bonus
+### Cross session memory bonus
 
 - Previous session summaries are loaded as context for the same user key.
 - User key can be phone based or anonymous UUID.
 
 ## 8. Latency logging evidence
+
 The code logs elapsed time for key stages in milliseconds.
 
-Logged stages
+### Logged stages
 
 - STT timer in src/pipeline/stt.ts
 - LLM timer in src/pipeline/llm.ts
 - TTS timer in src/pipeline/tts.ts
 
 ![STT response time](image.png)
+
 ![Gemini response time](image-1.png)
+
 ![TTS response time](image-2.png)
-    -Note: this includes the time taken to pronouce the sentence
+
+        -Note: this includes the time taken to pronouce the sentence
 
 - These times can be improved significantly by using realtime inference to models
-    - Whisper and XTTS both have realtime libraries for python , but will these to modify some libraries and look into greater depth for Typescript.
+        - Whisper and XTTS both have realtime libraries for python , but will these to modify some libraries and look into greater depth for Typescript.
 - These times are be greatly reduced by using better hardware for faster inference speeds and better models.
 
 
 
 
 ## 9. Apple Silicon compliance
+
 This project is intended to run on Apple Silicon Mac.
 It uses macOS native speech command and was tested on M series hardware.
 
-Evidence to include before submission
+### Evidence to include before submission
 
-- Output of uname -m showing arm64.
+- Output of uname -m.
+
+        ![uname]](image-3.png)
+
 - Output of node -v and npm -v.
-- One run log that shows STT LLM and TTS timer lines.
 
 ## 10. Known limitations and improvements
-Known limitations
+
+### Known limitations
 
 - Intent handler business logic is mostly simulated.
-- TTS currently depends on macOS and is not cross platform.
 - Security hardening and authentication are not implemented.
-- Confidence values are accepted directly from model output.
+- Cannot run better models locally due to RAM limitations
+- No realtime inference library for whisper or TTS for local models on node
+- No hard checks for LLM actions in place.
 
-Suggested improvements
+
+### Suggested improvements
 
 - Connect intents to real insurance backend services.
 - Add schema validation before accepting LLM output.
 - Add automated tests for prompt parsing and memory transitions.
-- Add optional cloud TTS provider for deployment portability.
-- Add structured latency report per pipeline stage.
-
-## 11. What you should add yourself before submission
-
-- Your full name student number and course details.
-- Exact submission date and project version or commit hash.
-- Real run logs from your own machine.
-- Short personal reflection on your implementation decisions.
-- Any institution specific declaration text.
+- Use realtime inference for AI Models.
+- Use custom models for english and german (reduce size of models)
+- Use a better more naturally sounding TTS
+- Add more extreme edge cases and error handles
 
 ## 12. AI usage summary
+
 A separate declaration file is provided in AI_USAGE.md.
 That file explains where AI was used and where manual work was done.
