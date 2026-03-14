@@ -29,6 +29,10 @@ export class SessionManager {
         this.session.history.push(message);
     }
 
+    updateCustomerName(name: string) {
+        this.session.customerName = name;
+    }
+
     endSession() {
         this.session = this.createSession();
     }   
