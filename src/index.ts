@@ -52,7 +52,7 @@ const rl = readline.createInterface({
 });
 
 console.log("Insurance Voice Agent");
-console.log("Commands: [r] record | [f] <filepath> | [q] quit\n");
+console.log("Commands: [r] record <seconds> | [f] <filepath> | [q] quit\n");
 
 function prompt() {
   rl.question("> ", async (input) => {
