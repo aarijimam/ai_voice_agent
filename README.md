@@ -88,6 +88,14 @@ npm run build
 npm run start
 ```
 
+## Development
+
+```bash
+npm run dev
+```
+
+`npm run dev` runs with development logging enabled.
+
 ## CLI usage
 
 When app starts it asks phone number.
@@ -104,6 +112,17 @@ Commands
     Switch language and voice
 - q
     End session and save memory plus summary
+
+## Console output behavior
+
+To reduce noise in normal runs, logging is split into two levels.
+
+- Always shown in both `npm run start` and `npm run dev`:
+    - Agent listening status
+    - STT transcribed text
+    - Assistant/LLM response text
+- Only shown in `npm run dev`:
+    - Internal debug logs (intent detection payloads, timing diagnostics, session debug details)
 
 ## Latency logging
 
