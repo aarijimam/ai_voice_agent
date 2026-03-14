@@ -1,5 +1,41 @@
-import * as fs from 'fs';
+import { execFileSync } from "child_process";
+import fs from "fs";
+import path from "path";
+import { config } from "../utils/config.js";
 
-const audioBuffer = fs.readFileSync('./audio/audio.wav');
+export async function recordAudio(durationSeconds: number): Promise<string> {
+  const outputPath = path.resolve(config.audio.tempDir, `recording_${Date.now()}.wav`);
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
-export default audioBuffer;
+  execFileSync("sox", [
+    "-d",
+    "-r",
+    "16000",
+    "-c",
+    "1",
+    outputPath,
+    "trim",
+    "0",
+    String(durationSeconds),
+  ]);
+
+  return outputPath;
+}
+
+export function convertToWav(inputPath: string): string {
+  const outputPath = inputPath.replace(/\.[^.]+$/, "_converted.wav");
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+  execFileSync("ffmpeg", [
+    "-i",
+    inputPath,
+    "-ar",
+    "16000",
+    "-ac",
+    "1",
+    outputPath,
+    "-y",
+  ]);
+
+  return outputPath;
+}
