@@ -134,16 +134,13 @@ async processMicInput(durationSeconds = 5): Promise<void> {
         }
 
         if (intentResult.intentSwitch || (intentResult.intent !== "unknown" && intentResult.intent !== "general_conversation")) {
+          debugLog(`Updating session intent to: ${intentResult.intent}`);
           this.session.updateIntent(intentResult.intent);
         }
         
         const assistantMessage = intentResult.llm_response;
         handleIntent(intentResult, text); // This will do any processing needed based on the intent.
-        if (intentResult.intent !== "unknown") {
-            debugLog(`Updating session intent to: ${intentResult.intent}`);
-           this.session.updateIntent(intentResult.intent);
-        }
-
+        
         this.session.addMessage("assistant", assistantMessage);
 
         console.log("Assistant Message:", assistantMessage);
