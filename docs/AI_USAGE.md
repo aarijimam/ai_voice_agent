@@ -40,6 +40,7 @@ It is provided to meet the case study requirement on AI transparency.
 - Research to look at models and options available. (I ended up not using most of the suggestions any way, because most were outdated or had major issues on github)
 - Some functions in the memory class where written were AI but designed manually.
 - More specific AI Usage is also mentioned in comments in the code.
+- Benchmark tools were done with AI help.
 
 ---
 

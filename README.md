@@ -107,11 +107,17 @@ Commands
 
 ## Latency logging
 
-The app logs timing in milliseconds for key steps.
+The app logs timing in milliseconds for key steps and writes per-turn benchmark rows to CSV.
 
+- CSV output file: `data/benchmarks/latency.csv`
+- Columns: `timestamp, sessionId, userKey, inputSource, sttMs, llmMs, ttsMs, totalMs, status`
 - STT timer
 - LLM timer
 - TTS timer
+
+> **IMPORTANT:** `ttsMs` includes the full time for macOS `say` to finish speaking the complete sentence, and `totalMs` also includes that same full TTS playback duration.
+
+> **NOTE:** When using local models (for example via Ollama and local Whisper execution), end-to-end latency is highly dependent on local model size, hardware, and current system load.
 
 ## Memory behavior
 
@@ -129,7 +135,7 @@ The app logs timing in milliseconds for key steps.
 
 ## Related docs
 
-- docs/technical_documentation.md
+- docs/TECHNICAL_DOCUMENTATION.md
 - docs/AI_USAGE.md
 
 
