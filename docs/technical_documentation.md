@@ -276,7 +276,7 @@ It uses macOS native speech command and was tested on M series hardware.
 
 ### Evidence
 
-![evidence of running on apple silicon](image-4.png)
+![evidence of running on apple silicon](image-5.png)
 
 ## 10. Libraries used
 
