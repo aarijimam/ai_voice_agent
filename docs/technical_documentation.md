@@ -274,10 +274,9 @@ The code logs elapsed time for key stages in milliseconds and persists per-turn 
 This project is intended to run on Apple Silicon Mac.
 It uses macOS native speech command and was tested on M series hardware.
 
-### Evidence to include before submission
+### Evidence
 
-- Output of uname -m.
-- ![uname](image-3.png)
+![evidence of running on apple silicon](image-5.png)
 
 ## 10. Libraries used
 
