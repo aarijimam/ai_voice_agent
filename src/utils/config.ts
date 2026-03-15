@@ -1,19 +1,20 @@
 export type LlmProvider = "local" | "gemini";
 export type AgentLanguage = "en" | "de";
 
+// Single initial language source so whisper + voice always start in sync.
 const whisperLanguage: AgentLanguage = "en";
 
 
 export const config: AppConfig = {
   llm: {
-    provider: "gemini",
+    provider: "gemini", // Switches between local LLM (Ollama) and cloud LLM (Gemini). 
   },
   whisper: {
-    model: "medium",
+    model: "medium", // whisper model size for STT, can be "tiny", "base", "small", "medium", or "large". Larger models are more accurate but require more resources and time.
     language: whisperLanguage,
   },
   ollama: {
-    model: "mistral:7b",
+    model: "mistral:7b", // Ollama model name, make sure to have it pulled and available locally if using local LLM provider.
     options: {
       temperature: 0.3,
       maxTokens: 1000,
@@ -23,7 +24,7 @@ export const config: AppConfig = {
     voice: getVoiceForLanguage(whisperLanguage),
   },
   gemini: {
-    model: "gemini-3.1-flash-lite-preview",
+    model: "gemini-3.1-flash-lite-preview", // Gemini model, make sure to set up API key and permissions correctly if using Gemini provider.
     apiKey: process.env.GEMINI_API_KEY ?? "",
   },
 

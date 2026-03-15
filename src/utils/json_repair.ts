@@ -1,4 +1,4 @@
-// This function was written by ai to help ensure that the JSON output from the LLM is always parseable, even if the LLM sometimes forgets to close braces or leaves trailing commas. It also strips markdown formatting if present. This way, we can avoid crashes due to JSON parsing errors and handle them gracefully instead.
+// Repairs small formatting issues from LLM output so JSON.parse is less likely to fail.
 export function repairJSON(raw: string): string {
   let cleaned = raw
     .replace(/```json|```/g, "") // strip markdown

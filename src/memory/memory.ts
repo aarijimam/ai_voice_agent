@@ -47,6 +47,7 @@ export class MemoryStore {
 
 	appendSession(session: Session): void {
 		const filePath = this.getFilePath(session.userKey);
+		// temp + rename pattern reduces risk of partial/corrupt write on crash.
 		const tempPath = `${filePath}.tmp`;
 		const existingSessions = this.loadSessions(session.userKey);
 
@@ -74,10 +75,12 @@ export class MemoryStore {
 	}
 
 	private toSafeFileName(userKey: string): string {
+		// user key can contain ':' or '+', convert to filesystem-safe form.
 		return userKey.replace(/[^a-zA-Z0-9._-]/g, "_");
 	}
 
 	private isValidUserMemoryFile(parsed: unknown, userKey: string): parsed is UserMemoryFile {
+		// Basic schema gate so unexpected file contents do not break runtime.
 		if (!parsed || typeof parsed !== "object") {
 			return false;
 		}

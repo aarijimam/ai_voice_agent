@@ -3,6 +3,7 @@ import { startTimer } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { debugLog } from '../utils/debug.js';
 
+// nodejs-whisper can be very noisy, keep only errors in normal flow.
 const quietWhisperLogger = {
     debug: () => {},
     log: () => {},
@@ -10,6 +11,7 @@ const quietWhisperLogger = {
 };
 
 function stripWhisperTimestamps(text: string): string {
+    // Some outputs include [hh:mm:ss.mmm --> hh:mm:ss.mmm] markers, strip for cleaner LLM input.
     return text
         .replace(/^\s*\[\d{2}:\d{2}:\d{2}\.\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}\.\d{3}\]\s*/gm, '')
         .replace(/\n{2,}/g, '\n')
@@ -17,6 +19,7 @@ function stripWhisperTimestamps(text: string): string {
 }
 
 
+//transcribes audio at given path using whisper and returns the text. If shouldDelete is true, the original audio file will be deleted after transcription to save space.
 export async function transcribeAudio(filePath: string, shouldDelete: boolean): Promise<string> {
     const timer = startTimer("STT Timer");
     const response = await nodewhisper(filePath, {

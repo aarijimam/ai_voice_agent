@@ -8,8 +8,11 @@ import { recordAudio } from "./pipeline/audio.js";
 import { appendLatencyBenchmark, type StageLatency } from "./utils/benchmark.js";
 import { debugLog } from "./utils/debug.js";
 
+// Main runtime orchestrator for one active caller/user.
+// This class handles the full turn pipeline STT -> intent/LLM -> TTS.
 export class Agent {
   private session: SessionManager;
+  // Stores timing for one processed turn so we can write one benchmark row at the end.
   private activeBenchmark: {
     inputSource: "mic" | "file";
     startedAt: number;
@@ -23,6 +26,7 @@ export class Agent {
   
 
 async processMicInput(durationSeconds = 5): Promise<void> {
+  // For microphone flow we record first, then reuse the same audio-file pipeline.
   console.log(`[AGENT] Listening for ${durationSeconds}s...`);
     const audioPath = await recordAudio(durationSeconds);
     await this.processAudioFile(audioPath, true, "mic");
@@ -111,6 +115,8 @@ async processMicInput(durationSeconds = 5): Promise<void> {
     
 }
 
+
+// Core turn processing for text input, shared by both mic and file-based flows. This is where intent detection and response generation happens.
   async processTextMessage(text: string): Promise<void> {
 
         this. session.addMessage("user", text);

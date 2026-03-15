@@ -34,11 +34,13 @@ function ensureCsvExists(filePath: string): void {
 }
 
 function toCsvValue(raw: string): string {
+  // Escape double-quotes to keep csv valid when values contain punctuation.
   const value = raw.replace(/"/g, '""');
   return `"${value}"`;
 }
 
 export function appendLatencyBenchmark(row: LatencyBenchmarkRow): void {
+  // One processed turn = one csv row.
   ensureCsvExists(LATENCY_CSV_PATH);
 
   const line = [

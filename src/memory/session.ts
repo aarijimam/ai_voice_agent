@@ -16,10 +16,12 @@ export class SessionManager {
         this.userKey = userKey;
         this.memoryStore = new MemoryStore();
         this.summaryStore = new SummaryStore();
+        // Load previous summaries here so a returning user gets context continuity.
         this.session = this.createSession(this.summaryStore.getAllSummariesAsContext(this.userKey));
     }
 
     createSession(previousSessionSummary: string | null = this.summaryStore.getAllSummariesAsContext(this.userKey)): Session {
+        // Session starts clean for runtime history, but can still carry prior summary context.
         const session: Session = {
             sessionId: randomUUID(),
             userKey: this.userKey,
@@ -62,6 +64,7 @@ export class SessionManager {
 
     async endSession(): Promise<void> {
         debugLog(`[SESSION] Ending session for user: ${this.userKey}`);
+        // Persist full raw session + condensed summary for future sessions.
         const summary = await summarizeSessionHistory(this.session.history);
         this.memoryStore.appendSession(this.session);
         this.summaryStore.appendSummary(this.session, summary);

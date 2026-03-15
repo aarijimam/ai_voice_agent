@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 
 
 
+// CLI entrypoint: asks user identity, then starts command loop.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -29,6 +30,7 @@ function questionAsync(question: string): Promise<string> {
 }
 
 function normalizePhoneNumber(raw: string): string | null {
+  // Light E.164 style normalization so one phone always maps to one memory key.
   const trimmed = raw.trim();
   if (trimmed.length === 0) {
     return null;
@@ -45,6 +47,7 @@ function normalizePhoneNumber(raw: string): string | null {
 }
 
 async function initializeAgentWithUserKey(): Promise<void> {
+  // In real call-center flow this would come from caller id, here we ask manually.
   const phoneInput = await questionAsync("Enter phone number for testing (optional): ");
   const normalizedPhone = normalizePhoneNumber(phoneInput);
   const userKey = normalizedPhone ? `phone:${normalizedPhone}` : `anonymous:${randomUUID()}`;
@@ -59,11 +62,13 @@ async function initializeAgentWithUserKey(): Promise<void> {
 }
 
 function prompt() {
+  // Recursive prompt loop so app keeps running until explicit quit.
   rl.question("> ", async (input) => {
     const [cmd, ...args] = input.trim().split(" ");
 
     switch (cmd) {
       case "r":
+        // Record from microphone for N seconds, default is 5.
         try{
           await agent.processMicInput(args[0] ? parseInt(args[0], 10) : 5);
         }catch(error){
@@ -71,6 +76,7 @@ function prompt() {
         }
         break;
       case "f":
+        // Resolve input from local audio folder for easy testing.
         try{
           await agent.processAudioFile(args[0] ?  path.resolve(__dirname, `../audio/${args[0]}`) : "./audio/default.wav");
         }catch(error){
@@ -79,6 +85,7 @@ function prompt() {
         break;
       case "l":
       case "language": {
+        // Changes both STT language and mapped TTS voice.
         const lang = args[0];
         if (lang !== "en" && lang !== "de") {
           console.log("Usage: l <en|de>");
