@@ -6,9 +6,13 @@ import { textToSpeech } from "./pipeline/tts.js";
 import { transcribeAudio } from "./pipeline/stt.js";
 import { recordAudio } from "./pipeline/audio.js";
 import { appendLatencyBenchmark, type StageLatency } from "./utils/benchmark.js";
+import { debugLog } from "./utils/debug.js";
 
+// Main runtime orchestrator for one active caller/user.
+// This class handles the full turn pipeline STT -> intent/LLM -> TTS.
 export class Agent {
   private session: SessionManager;
+  // Stores timing for one processed turn so we can write one benchmark row at the end.
   private activeBenchmark: {
     inputSource: "mic" | "file";
     startedAt: number;
@@ -22,7 +26,8 @@ export class Agent {
   
 
 async processMicInput(durationSeconds = 5): Promise<void> {
-    console.log(`[AGENT] Listening for ${durationSeconds}s...`);
+  // For microphone flow we record first, then reuse the same audio-file pipeline.
+  console.log(`[AGENT] Listening for ${durationSeconds}s...`);
     const audioPath = await recordAudio(durationSeconds);
     await this.processAudioFile(audioPath, true, "mic");
   }
@@ -91,11 +96,11 @@ async processMicInput(durationSeconds = 5): Promise<void> {
     }
     this.startBenchmark(inputSource);
     try{
-    console.log(`Audio file found at ${audioFilePath}, proceeding with processing.`);
+    debugLog(`Audio file found at ${audioFilePath}, proceeding with processing.`);
     const transcript = await this.timeStage("stt", () => transcribeAudio(audioFilePath, shouldDelete));
     console.log("[STT] Transcribed Text:", transcript);
     if (!transcript || transcript.trim().length === 0) {
-        console.log("[STT] No valid transcript generated.");
+      debugLog("[STT] No valid transcript generated.");
         await this.timeStage("tts", () => textToSpeech("Sorry, I couldn't understand the audio. Can you please repeat?", `./output/error_response_${Date.now()}.wav`, true));
     } else {
         await this.processTextMessage(transcript);
@@ -110,12 +115,14 @@ async processMicInput(durationSeconds = 5): Promise<void> {
     
 }
 
+
+// Core turn processing for text input, shared by both mic and file-based flows. This is where intent detection and response generation happens.
   async processTextMessage(text: string): Promise<void> {
 
         this. session.addMessage("user", text);
 
         const messages = this.session.getMessages();
-        console.log("Current session messages:", messages);
+        debugLog("Current session messages:", messages);
         
         const intentResult = await this.timeStage(
           "llm",
@@ -133,7 +140,7 @@ async processMicInput(durationSeconds = 5): Promise<void> {
         const assistantMessage = intentResult.llm_response;
         handleIntent(intentResult, text); // This will do any processing needed based on the intent.
         if (intentResult.intent !== "unknown") {
-           console.log(`Updating session intent to: ${intentResult.intent}`);
+            debugLog(`Updating session intent to: ${intentResult.intent}`);
            this.session.updateIntent(intentResult.intent);
         }
 

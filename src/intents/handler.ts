@@ -1,4 +1,5 @@
 import type {IntentResult} from "./types.js";
+import { debugLog } from "../utils/debug.js";
 
 export async function handleIntent(intent: IntentResult, userMessage: string) {
     switch (intent.intent) {
@@ -26,26 +27,26 @@ export async function handleIntent(intent: IntentResult, userMessage: string) {
 
 
 function handlePolicyEnquiry(confidence: number, userMessage: string) : string{
-    console.log("Handling policy enquiry with confidence:", confidence);
+    debugLog("Handling policy enquiry with confidence:", confidence);
     return "Policy enquiry handled";
 }
 
 function handleReportClaim(confidence: number, userMessage: string) : string {
-    console.log("Handling claim report with confidence:", confidence);
+    debugLog("Handling claim report with confidence:", confidence);
     return "Claim report handled";
 }
 
 function handleScheduleAppointment(confidence: number, userMessage: string) : string {
-    console.log("Handling appointment scheduling with confidence:", confidence);
+    debugLog("Handling appointment scheduling with confidence:", confidence);
     return "Appointment scheduled";
 }
 
 function handleUnknownIntent(confidence: number, userMessage: string) : string {
-    console.log("Handling unknown intent with confidence:", confidence);
+    debugLog("Handling unknown intent with confidence:", confidence);
     return "Unknown intent handled";
 }
 
 function handleGeneralConversation(confidence: number, userMessage: string) : string {
-    console.log("Handling general conversation with confidence:", confidence);
+    debugLog("Handling general conversation with confidence:", confidence);
     return "General conversation handled";
 }

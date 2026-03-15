@@ -3,7 +3,10 @@ import { startTimer } from '../utils/logger.js';
 import type {Message} from '../intents/types.js';
 import { config } from '../utils/config.js';
 import { GoogleGenAI } from "@google/genai";
+import { debugLog } from '../utils/debug.js';
 
+
+//queries the local llm provider (ollama) or Gemini based on config. Returns the raw text response from the model.
 export async function queryLLM(messages: Message[]): Promise<string> {
     if (config.llm.provider === "gemini") {
         return queryGemini(messages);
@@ -16,7 +19,7 @@ export async function queryLLM(messages: Message[]): Promise<string> {
         messages: messages
     })
     const elapsed = timer.end();
-    console.log(`LLM process has been running for ${elapsed} milliseconds.`);
+    debugLog(`LLM process has been running for ${elapsed} milliseconds.`);
     return response.message.content;
 }
 
@@ -48,10 +51,12 @@ export async function queryGemini(messages: Message[]): Promise<string> {
       : messages.length - 1 - lastUserMessageIndex;
 
   const history = messages.slice(0, Math.max(0, userMessageIndex)).map((message) => ({
+    // Gemini SDK expects "model/user" role style, so assistant gets mapped to model.
     role: message.role === "assistant" ? "model" : "user",
     parts: [
       {
         text:
+          // Keep system text in history by wrapping it as explicit instruction text.
           message.role === "system"
             ? `[SYSTEM INSTRUCTION]\n${message.content}`
             : message.content,
@@ -70,6 +75,6 @@ export async function queryGemini(messages: Message[]): Promise<string> {
   });
 
   const elapsed = timer.end();
-  console.log(`Gemini process has been running for ${elapsed} milliseconds.`);
+  debugLog(`Gemini process has been running for ${elapsed} milliseconds.`);
   return response.text ? response.text : "Sorry, I couldn't generate a response.";
 }
