@@ -36,6 +36,18 @@ This project runs as a CLI app and supports English and German.
 
 ## Install dependencies
 
+Install Apple Command Line Tools first (required for native builds).
+
+```bash
+xcode-select --install
+```
+
+If they are already installed, you can verify with:
+
+```bash
+xcode-select -p
+```
+
 Install system tools on macOS.
 
 ```bash
