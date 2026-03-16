@@ -38,3 +38,7 @@ timestamp,sessionId,userKey,llmProvider,llmModel,inputSource,sttMs,llmMs,ttsMs,t
 "2026-03-16T06:21:06.723Z","60cdf369-22f2-457d-bd5d-d8a00656afab","anonymous:e538fa13-d11e-4d83-8991-ab370c7f0cac","gemini","gemini-3.1-flash-lite-preview","mic",1627,789,9213,11629,"ok"
 "2026-03-16T06:21:32.629Z","60cdf369-22f2-457d-bd5d-d8a00656afab","anonymous:e538fa13-d11e-4d83-8991-ab370c7f0cac","gemini","gemini-3.1-flash-lite-preview","mic",1564,1289,7886,10739,"ok"
 "2026-03-16T06:21:57.781Z","60cdf369-22f2-457d-bd5d-d8a00656afab","anonymous:e538fa13-d11e-4d83-8991-ab370c7f0cac","gemini","gemini-3.1-flash-lite-preview","mic",1639,875,9479,11994,"ok"
+"2026-03-16T06:32:37.327Z","093f3eb5-93d0-4e48-9dec-047aec1565f9","anonymous:b727551f-7d2c-49a0-b0d0-8c2436e28353","ollama","llama3.2:3b","mic",2191,4645,5508,12347,"ok"
+"2026-03-16T06:33:11.056Z","054b6bea-65c8-46e5-88c9-e4add89fd6c9","anonymous:878f1683-44cd-482e-b0a8-0c57f7c6d2fd","ollama","llama3.2:3b","mic",2162,3706,7585,13456,"ok"
+"2026-03-16T06:34:05.210Z","054b6bea-65c8-46e5-88c9-e4add89fd6c9","anonymous:878f1683-44cd-482e-b0a8-0c57f7c6d2fd","ollama","llama3.2:3b","mic",2217,2418,7928,12568,"ok"
+"2026-03-16T06:34:28.807Z","054b6bea-65c8-46e5-88c9-e4add89fd6c9","anonymous:878f1683-44cd-482e-b0a8-0c57f7c6d2fd","ollama","llama3.2:3b","mic",1959,3983,8426,14368,"ok"
