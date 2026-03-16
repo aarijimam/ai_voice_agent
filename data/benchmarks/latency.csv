@@ -14,3 +14,8 @@ timestamp,sessionId,userKey,llmProvider,llmModel,inputSource,sttMs,llmMs,ttsMs,t
 "2026-03-16T05:44:29.743Z","8f9bde85-45a8-43f5-8bbc-438b82cdeb9e","phone:+12345678","ollama","llama3.2:1b","mic",2219,4013,5292,11529,"ok"
 "2026-03-16T05:45:19.760Z","8f9bde85-45a8-43f5-8bbc-438b82cdeb9e","phone:+12345678","ollama","llama3.2:1b","mic",2416,2190,6250,10858,"ok"
 "2026-03-16T05:46:14.863Z","8f9bde85-45a8-43f5-8bbc-438b82cdeb9e","phone:+12345678","ollama","llama3.2:1b","mic",1900,2871,14790,19561,"ok"
+"2026-03-16T06:05:34.558Z","36a069e8-999c-44b1-9af0-b45e91926bda","anonymous:c114b6af-c8f6-40f0-987c-6ba1ce0702c4","ollama","mistral:7b","mic",2076,8139,3248,13467,"ok"
+"2026-03-16T06:06:12.960Z","36a069e8-999c-44b1-9af0-b45e91926bda","anonymous:c114b6af-c8f6-40f0-987c-6ba1ce0702c4","ollama","mistral:7b","mic",2158,6654,7985,16803,"ok"
+"2026-03-16T06:06:53.651Z","36a069e8-999c-44b1-9af0-b45e91926bda","anonymous:c114b6af-c8f6-40f0-987c-6ba1ce0702c4","ollama","mistral:7b","mic",2088,6891,6311,15290,"ok"
+"2026-03-16T06:08:32.082Z","36a069e8-999c-44b1-9af0-b45e91926bda","anonymous:c114b6af-c8f6-40f0-987c-6ba1ce0702c4","ollama","mistral:7b","mic",1950,6769,7420,16143,"ok"
+"2026-03-16T06:08:55.546Z","36a069e8-999c-44b1-9af0-b45e91926bda","anonymous:c114b6af-c8f6-40f0-987c-6ba1ce0702c4","ollama","mistral:7b","mic",1717,6705,6699,15123,"ok"
