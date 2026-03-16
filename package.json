@@ -27,6 +27,8 @@
     "@google/genai": "^1.45.0",
     "nodejs-whisper": "^0.2.9",
     "ollama": "^0.6.3",
-    "whisper.cpp": "^1.0.3"
+    "whisper.cpp": "^1.0.3",
+    "zod": "^3.24.1",
+    "zod-to-json-schema": "^3.25.1"
   }
 }
