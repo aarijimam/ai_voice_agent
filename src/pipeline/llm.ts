@@ -4,20 +4,23 @@ import type {Message} from '../intents/types.js';
 import { config } from '../utils/config.js';
 import { GoogleGenAI } from "@google/genai";
 import { debugLog } from '../utils/debug.js';
+import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 
 //queries the local llm provider (ollama) or Gemini based on config. Returns the raw text response from the model.
-export async function queryLLM(messages: Message[]): Promise<string> {
+export async function queryLLM(messages: Message[], schema?: z.ZodTypeAny): Promise<string> {
     if (config.llm.provider === "gemini") {
         return queryGemini(messages);
     }
 
     const timer = startTimer("LLM Timer");
     const response = await ollama.chat({
-        model: config.ollama.model,
-        options: config.ollama.options,
-        messages: messages
-    })
+      model: config.ollama.model,
+      options: config.ollama.options,
+      messages,
+      ...(schema ? { format: zodToJsonSchema(schema) } : {}),
+    });
     const elapsed = timer.end();
     debugLog(`LLM process has been running for ${elapsed} milliseconds.`);
     return response.message.content;
