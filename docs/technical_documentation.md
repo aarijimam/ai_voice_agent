@@ -256,6 +256,26 @@ The code logs elapsed time for key stages in milliseconds and persists per-turn 
 - LLM timer in **src/pipeline/llm.ts**
 - TTS timer in **src/pipeline/tts.ts**
 
+### Brief latency results (latest benchmark sample)
+
+| Metric | Value |
+| --- | --- |
+| Source | **data/benchmarks/latency.csv** |
+| Sample size | **39** interactions |
+| Status split | **38 ok**, **1 error** |
+| Avg `sttMs` | 1811 |
+| Avg `llmMs` | 3051 |
+| Avg `ttsMs` | 7023 |
+| Avg `totalMs` | 11888 |
+| Observation | **TTS is the largest stage** (~59% of average total latency) |
+
+| Provider | Model | n | Avg `llmMs` | Avg `totalMs` |
+| --- | --- | ---: | ---: | ---: |
+| ollama | `llama3.2:3b` | 24 | 2864 | 11359 |
+| ollama | `llama3.2:1b` | 3 | 3025 | 13983 |
+| ollama | `mistral:7b` | 5 | 7032 | 15365 |
+| gemini | `gemini-3.1-flash-lite-preview` | 7 | 860 | 10318 |
+
 ![STT response time](image.png)
 
 ![Gemini response time](image-1.png)
@@ -264,6 +284,7 @@ The code logs elapsed time for key stages in milliseconds and persists per-turn 
 
 - **IMPORTANT:** `ttsMs` includes the full time required for TTS to speak the complete sentence, and `totalMs` also includes this complete TTS speaking duration.
 - **NOTE:** Because local models are used in this project path (local Whisper and optional local LLM via Ollama), measured latency is highly dependent on model size, Apple Silicon hardware capability, and current machine load.
+- **NOTE:** The first inference in each fresh run is expected to be slower because of model/runtime loading (cold start). After warm-up, subsequent inferences are generally faster.
 
 - These times can be improved significantly by using realtime inference to models
   - Whisper and XTTS both have realtime libraries for python , but will these to modify some libraries and look into greater depth for Typescript.
