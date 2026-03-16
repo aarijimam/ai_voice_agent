@@ -149,9 +149,31 @@ The app logs timing in milliseconds for key steps and writes per-turn benchmark 
 - LLM timer
 - TTS timer
 
+### Latency report brief (latest sample)
+
+| Metric | Value |
+| --- | --- |
+| Source | `data/benchmarks/latency.csv` |
+| Sample size | 39 interactions |
+| Status split | 38 `ok`, 1 `error` |
+| Avg `sttMs` | 1811 |
+| Avg `llmMs` | 3051 |
+| Avg `ttsMs` | 7023 |
+| Avg `totalMs` | 11888 |
+| Main bottleneck | `ttsMs` (~59% of average total latency) |
+
+| Provider | Model | n | Avg `llmMs` | Avg `totalMs` |
+| --- | --- | ---: | ---: | ---: |
+| ollama | `llama3.2:3b` | 24 | 2864 | 11359 |
+| ollama | `llama3.2:1b` | 3 | 3025 | 13983 |
+| ollama | `mistral:7b` | 5 | 7032 | 15365 |
+| gemini | `gemini-3.1-flash-lite-preview` | 7 | 860 | 10318 |
+
 > **IMPORTANT:** `ttsMs` includes the full time for macOS `say` to finish speaking the complete sentence, and `totalMs` also includes that same full TTS playback duration.
 
 > **NOTE:** When using local models (for example via Ollama and local Whisper execution), end-to-end latency is highly dependent on local model size, hardware, and current system load.
+
+> **NOTE:** The first inference in each fresh app run is typically slower due to model/runtime loading (cold start). Subsequent turns are usually faster once models are warm.
 
 ## Memory behavior
 
