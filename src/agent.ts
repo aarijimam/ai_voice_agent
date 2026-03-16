@@ -7,6 +7,7 @@ import { transcribeAudio } from "./pipeline/stt.js";
 import { recordAudio } from "./pipeline/audio.js";
 import { appendLatencyBenchmark, type StageLatency } from "./utils/benchmark.js";
 import { debugLog } from "./utils/debug.js";
+import { config } from "./utils/config.js";
 
 // Main runtime orchestrator for one active caller/user.
 // This class handles the full turn pipeline STT -> intent/LLM -> TTS.
@@ -71,10 +72,13 @@ async processMicInput(durationSeconds = 5): Promise<void> {
     }
 
     const session = this.session.getSession();
+    const usingGemini = config.llm.provider === "gemini";
     appendLatencyBenchmark({
       timestamp: new Date().toISOString(),
       sessionId: session ? String(session.sessionId) : "unknown",
       userKey: session?.userKey ?? "unknown",
+      llmProvider: usingGemini ? "gemini" : "ollama",
+      llmModel: usingGemini ? config.gemini.model : config.ollama.model,
       inputSource: benchmark.inputSource,
       sttMs: benchmark.stageLatency.stt,
       llmMs: benchmark.stageLatency.llm,
