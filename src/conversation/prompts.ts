@@ -3,7 +3,9 @@ import type { Session } from "../intents/types.js";
 import { config } from "../utils/config.js";
 
 export function buildAgentPrompt(session: Session, useGermanPrompt = config.whisper.language === "de"): string {
-  const name = session.customerName ?? "the customer";
+  const name = session.customerName ?? (useGermanPrompt
+    ? "unbekannter Kunde - frage bei erster Gelegenheit nach dem Namen!"
+    : "unknown customer - ask for their name first chance!");
   const currentIntent = session.getCurrentIntent();
   const previousSummary = session.previousSessionSummary?.trim();
   const previousSummaryContextEn = previousSummary
