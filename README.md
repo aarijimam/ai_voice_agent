@@ -30,7 +30,7 @@ This project runs as a CLI app and supports English and German.
 
 - Node.js + TypeScript
 - STT: nodejs-whisper with whisper.cpp
-- LLM: Gemini API (default) or Ollama (local)
+- LLM: Ollama (default, local) or Gemini API (optional)
 - TTS: macOS say
 - Audio tools: sox and ffmpeg
 
@@ -62,7 +62,7 @@ npm install
 
 ## Environment setup
 
-If you use Gemini provider, set your API key.
+If you switch to Gemini provider, set your API key.
 
 ```bash
 export GEMINI_API_KEY="your_api_key_here"
@@ -72,21 +72,22 @@ export GEMINI_API_KEY="your_api_key_here"
 
 Model and provider settings are in src/utils/config.ts.
 
-Default configuration uses Gemini.
+Default configuration uses Ollama (local).
 
 ```ts
-llm: { provider: "gemini" }
-gemini: { model: "gemini-3.1-flash-lite-preview" }
+llm: { provider: "local" }
+ollama: { model: "llama3.2:3b" }
 ```
 
-Local option uses Ollama.
-If you switch provider to local, run Ollama with a model.
+Run Ollama locally and pull a model.
 
 ```bash
 brew install ollama
 ollama serve
-ollama pull mistral:7b
+ollama pull llama3.2:3b
 ```
+
+For lower latency on limited hardware, you can use faster Ollama models (for example `llama3.2:1b`) instead of heavier models like `mistral:7b`.
 
 ## Build
 
@@ -143,7 +144,7 @@ To reduce noise in normal runs, logging is split into two levels.
 The app logs timing in milliseconds for key steps and writes per-turn benchmark rows to CSV.
 
 - CSV output file: `data/benchmarks/latency.csv`
-- Columns: `timestamp, sessionId, userKey, inputSource, sttMs, llmMs, ttsMs, totalMs, status`
+- Columns: `timestamp, sessionId, userKey, llmProvider, llmModel, inputSource, sttMs, llmMs, ttsMs, totalMs, status`
 - STT timer
 - LLM timer
 - TTS timer
