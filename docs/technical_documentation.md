@@ -52,17 +52,17 @@ Runs Whisper transcription through nodejs whisper.
 
 #### **src/pipeline/llm.ts**
 Runs LLM inference calls.
-- Has too options based on the config file Ollama or Gemini, more options can also be added.
-- I designed the initial pipeline with local LLM in mind but due to RAM limitation and context handling, as well as running two models at a time, I also integrated Gemini Api.
-- LocalLLM tends to lose context faster gemini is good at this.
+- Has two options based on config: Ollama (default) or Gemini (optional).
+- Local Ollama is now the default provider in config for faster local-first development.
+- Response format is enforced with Zod schemas passed to Ollama `format` (converted using `zod-to-json-schema`) to improve JSON reliability.
 - For Gemini model
   - I chose the "gemini-3.1-flash-lite-preview" because it is the latest flash lite model as we don't need that much context and designing for least latency a faster smaller model is better.
   - I chose Gemini in particular because it offers a free api for developers for testing, in our case as we are not using media, or complex calculations the choice of models do not matter that much, I also tested with "gemini-3-flash-preview" and there was not much difference as we are also use limited tokens and sentence length.
 - For Local LLM (Ollama)
   - Choice first of all depended on the amount of RAM I had, being limited by 16 GB VRAM, I was limited to using the smaller parameter versions of the models.
-  - I tested will llama3.2:1b (1 billion params) but the output was too unreliable specially when it comes to JSON structure
-  - I test wth llama3.2:3b (3 billion params) the output was more reliable but the context window was too small and the model tended to lose context after a  4-5 messages from the user and often resulted in corrupted JSONs.
-  - Mistral:7b was able to provide reliable results as well as maintain a larger amount of context, it also seemed to reply with the correct structure most of the times, this was also the biggest model in param sizes, so the quality of output was naturally better
+  - I tested will llama3.2:1b (1 billion params) with zod format, the output was reliable but llm tended to hallucinate and forget information sometimes.
+  - I test wth llama3.2:3b (3 billion params) the output was more reliable and the speed difference between 1b and 3b was minimal (can be seen in latency report). - This was chosen for best speed/output quality ratio.
+  - Mistral:7b was able to provide reliable results as well as maintain a larger amount of context, it also seemed to reply with the correct structure most of the times, this was also the biggest model in param sizes, so the quality of output was naturally better, but the response were slower compared to the smalller llama models.
 
 #### **src/pipeline/tts.ts**
 Uses macOS say for voice response.
@@ -143,9 +143,9 @@ Detailed setup is in **README.md**.
 
 - Also explained in detail in the **llm.ts** section of this doc 
 
-- Default provider is Gemini because it is fast and free for developers and good for short turn based conversation
-- The project needs structured JSON output and Gemini performs well for this pattern.
-- Ollama is available for offline testing and development, limited due to RAM limitations
+- Default provider is Ollama (`llm.provider = "local"`) for local-first execution and reduced cloud dependency.
+- Structured JSON output is now constrained with Zod-based format definitions, which improves parsing reliability.
+- Gemini remains available as an optional provider when cloud inference is needed.
 
 ### STT choice
 
@@ -169,6 +169,7 @@ Detailed setup is in **README.md**.
 
 - Keep assistant responses short for voice playback.
 - Enforce strict JSON output for reliable parsing.
+- Enforce schema-constrained JSON format through Zod for stronger output consistency.
 - Support active task continuity and intent switch handling.
 - Ask for customer name when missing and reuse it later.
 - Support English and German prompt variants.
@@ -206,7 +207,7 @@ Detailed setup is in **README.md**.
 
 ### Fallback behavior
 
-- If model output cannot be parsed as JSON then the detector returns unknown.
+- If model output cannot be parsed as JSON then the detector returns unknown (with JSON repair fallback first).
 - The agent responds with a safe fallback message asking the user to rephrase.
 
 ## 7. Task 3 memory and context behavior
@@ -240,6 +241,8 @@ The code logs elapsed time for key stages in milliseconds and persists per-turn 
   - timestamp
   - sessionId
   - userKey
+  - llmProvider
+  - llmModel
   - inputSource
   - sttMs
   - llmMs
@@ -253,6 +256,26 @@ The code logs elapsed time for key stages in milliseconds and persists per-turn 
 - LLM timer in **src/pipeline/llm.ts**
 - TTS timer in **src/pipeline/tts.ts**
 
+### Brief latency results (latest benchmark sample)
+
+| Metric | Value |
+| --- | --- |
+| Source | **data/benchmarks/latency.csv** |
+| Sample size | **39** interactions |
+| Status split | **38 ok**, **1 error** |
+| Avg `sttMs` | 1811 |
+| Avg `llmMs` | 3051 |
+| Avg `ttsMs` | 7023 |
+| Avg `totalMs` | 11888 |
+| Observation | **TTS is the largest stage** (~59% of average total latency) |
+
+| Provider | Model | n | Avg `llmMs` | Avg `totalMs` |
+| --- | --- | ---: | ---: | ---: |
+| ollama | `llama3.2:3b` | 24 | 2864 | 11359 |
+| ollama | `llama3.2:1b` | 3 | 3025 | 13983 |
+| ollama | `mistral:7b` | 5 | 7032 | 15365 |
+| gemini | `gemini-3.1-flash-lite-preview` | 7 | 860 | 10318 |
+
 ![STT response time](image.png)
 
 ![Gemini response time](image-1.png)
@@ -261,6 +284,7 @@ The code logs elapsed time for key stages in milliseconds and persists per-turn 
 
 - **IMPORTANT:** `ttsMs` includes the full time required for TTS to speak the complete sentence, and `totalMs` also includes this complete TTS speaking duration.
 - **NOTE:** Because local models are used in this project path (local Whisper and optional local LLM via Ollama), measured latency is highly dependent on model size, Apple Silicon hardware capability, and current machine load.
+- **NOTE:** The first inference in each fresh run is expected to be slower because of model/runtime loading (cold start). After warm-up, subsequent inferences are generally faster.
 
 - These times can be improved significantly by using realtime inference to models
   - Whisper and XTTS both have realtime libraries for python , but will these to modify some libraries and look into greater depth for Typescript.
@@ -289,6 +313,14 @@ It uses macOS native speech command and was tested on M series hardware.
 - **ollama**
   - Purpose: Local LLM client for running models through Ollama.
   - Used in **src/pipeline/llm.ts** as local inference option.
+
+- **zod**
+  - Purpose: Define runtime schema for LLM response format.
+  - Used in **src/intents/types.ts** and passed to **src/pipeline/llm.ts** for schema-based output constraints.
+
+- **zod-to-json-schema**
+  - Purpose: Convert Zod schema into JSON Schema for Ollama `format` parameter.
+  - Used in **src/pipeline/llm.ts** to enforce structured response output.
 
 - **nodejs-whisper**
   - Purpose: TypeScript friendly wrapper to run Whisper transcription.
@@ -341,7 +373,7 @@ It uses macOS native speech command and was tested on M series hardware.
 ### Suggested improvements
 
 - Connect intents to real insurance backend services.
-- Add schema validation before accepting LLM output.
+- Expand schema validation coverage for additional response types.
 - Add automated tests for prompt parsing and memory transitions.
 - Use realtime inference for AI Models.
 - Use custom models for english and german (reduce size of models)

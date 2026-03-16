@@ -7,14 +7,14 @@ const whisperLanguage: AgentLanguage = "en";
 
 export const config: AppConfig = {
   llm: {
-    provider: "gemini", // Switches between local LLM (Ollama) and cloud LLM (Gemini). 
+    provider: "local", // Switches between local LLM (Ollama) and cloud LLM (Gemini). 
   },
   whisper: {
     model: "medium", // whisper model size for STT, can be "tiny", "base", "small", "medium", or "large". Larger models are more accurate but require more resources and time.
     language: whisperLanguage,
   },
   ollama: {
-    model: "mistral:7b", // Ollama model name, make sure to have it pulled and available locally if using local LLM provider.
+    model: "llama3.2:3b", // Ollama model name, make sure to have it pulled and available locally if using local LLM provider.
     options: {
       temperature: 0.3,
       maxTokens: 1000,

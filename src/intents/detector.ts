@@ -1,6 +1,7 @@
 import { queryLLM } from "../pipeline/llm.js";
 import type {Message} from './types.js';
 import type { IntentResult } from "./types.js";
+import { intentResultSchema } from "./types.js";
 import { buildAgentPrompt} from "../conversation/prompts.js";
 import { repairJSON } from '../utils/json_repair.js';
 import type { Session } from "./types.js";
@@ -9,7 +10,6 @@ import { debugLog } from "../utils/debug.js";
 
 
 export async function detectIntent(message: Message[], session: Session): Promise<IntentResult> {
-    // Prompt language follows current runtime language so STT/LLM/TTS stay aligned.
     const useGermanPrompt = config.whisper.language === "de";
     // System prompt is rebuilt each turn with session context.
     const messages:Message[] = [
@@ -17,23 +17,20 @@ export async function detectIntent(message: Message[], session: Session): Promis
         ...message
     ];
     debugLog("Detecting intent with messages:", messages);
-    const response = await queryLLM(messages);
+    const response = await queryLLM(messages, intentResultSchema);
     try {
         // LLM can occasionally return malformed JSON, repairJSON handles common cases.
         debugLog("LLM Response for intent detection:", response);
-        const parsed = JSON.parse(repairJSON(response));
-        const customerName = parsed.customerName && 
-              parsed.customerName !== 'null' && 
-              parsed.customerName.trim() !== '' 
-              ? parsed.customerName.trim() 
-              : null;
-        return { 
-            intent: parsed.intent,
-             intentSwitch: parsed.intentSwitch,
-              abandonPrevious: parsed.abandonPrevious,
-               confidence: parsed.confidence, 
-               customerName: customerName,
-                llm_response: parsed.llm_response };
+        const rawParsed = JSON.parse(repairJSON(response));
+        const normalized = {
+            ...rawParsed,
+            customerName:
+              typeof rawParsed.customerName === "string" &&
+              rawParsed.customerName.trim().toLowerCase() === "null"
+                ? null
+                : rawParsed.customerName,
+        };
+        return intentResultSchema.parse(normalized) as IntentResult;
 
     } catch (error) {
         // Safe fallback keeps the call flow alive instead of crashing the turn.
